@@ -313,18 +313,18 @@ transition: all 0.2s ease;
 } 
  
 @media (min-width: 1782px) { 
-  #geth_node { 
+  #ethnode_node { 
     display: inline-block; 
     text-align: right !important; 
     float: left !important; 
   } 
-  #geth_ready, #geth_busy, #geth_loading { 
+  #ethnode_ready, #ethnode_busy, #ethnode_loading { 
     text-align: right !important; 
     display: block; 
     right: 0; 
     float: left !important; 
   } 
-  .geth_allign { 
+  .ethnode_allign { 
     float: right !important; 
   } 
  
@@ -385,7 +385,7 @@ transition: all 0.2s ease;
  
 <div class="row"> 
   <div class="col-sm-4"> 
-    <div class="panel panel-default borderhover1_" id="widget_geth" style="height: 120px"> 
+    <div class="panel panel-default borderhover1_" id="widget_ethnode" style="height: 120px"> 
  
  
  
@@ -411,7 +411,7 @@ transition: all 0.2s ease;
 ">Ethereum Node</h4></div> 
  
  
-<br><br><span id="geth_lastblockn">..</span> 
+<br><br><span id="ethnode_lastblockn">..</span> 
  
  
  
@@ -429,21 +429,21 @@ transition: all 0.2s ease;
     padding-left: 3% !important; 
     padding-right: 3% !important; 
     font-size: 11px; 
-"><div style="float: left; visibility: hidden"><span class="fa fa-rss"></span> <span id="geth_kb">..</span> KBytes</div> 
+"><div style="float: left; visibility: hidden"><span class="fa fa-rss"></span> <span id="ethnode_kb">..</span> KBytes</div> 
  
-<div class="geth_allign"> 
-<span id="geth_loading" style="display: none; 
+<div class="ethnode_allign"> 
+<span id="ethnode_loading" style="display: none; 
     float: right;text-align:right; 
              "><span style="" class="fa fa-spin fa-spinner"></span> connecting</span> 
-<span id="geth_ready" style="display: none; 
+<span id="ethnode_ready" style="display: none; 
     float: right;text-align:right; 
-             "><span style="color: darkgreen" class="fa fa-check"></span> Connected to RPC node, <span class="active_geth_node"></span></span> 
+             "><span style="color: darkgreen" class="fa fa-check"></span> Connected to RPC node, <span class="active_ethnode_node"></span></span> 
  
-<span id="geth_busy" style="display: none; 
+<span id="ethnode_busy" style="display: none; 
     float: right;text-align:right; 
-             "><span style="" class="fa fa-spin fa-spinner"></span> Connecting to RPC node, <span class="active_geth_node"></span></span> 
-<!--<input type="text" id="custom_geth_node" style="overflow: hidden; border-bottom: 1px solid #ccc !important; border: none; outline: none; appearance: none; -moz-appearance: none; -webkit-appearance: none;float: right;display:none;background: url(https://cdn2.iconfinder.com/data/icons/flat-ui-icons-24-px/24/settings-24-16.png) no-repeat right;" maxlength="18" placeholder="Enter custom node...">--> 
-<select name="geth_node" id="geth_node" class="select_box" style="background-position: 165px 0px; width: 185px;display:none;"> 
+             "><span style="" class="fa fa-spin fa-spinner"></span> Connecting to RPC node, <span class="active_ethnode_node"></span></span> 
+<!--<input type="text" id="custom_ethnode_node" style="overflow: hidden; border-bottom: 1px solid #ccc !important; border: none; outline: none; appearance: none; -moz-appearance: none; -webkit-appearance: none;float: right;display:none;background: url(https://cdn2.iconfinder.com/data/icons/flat-ui-icons-24-px/24/settings-24-16.png) no-repeat right;" maxlength="18" placeholder="Enter custom node...">--> 
+<select name="ethnode_node" id="ethnode_node" class="select_box" style="background-position: 165px 0px; width: 185px;display:none;"> 
 </select> 
  
 </div> 
@@ -614,7 +614,7 @@ Being <u>Oraclize</u> a provably-honest service, you can check our honesty at an
   <div class="panel-body">This page is a <b>client-side</b> tool you can run by yourself to verify we are behaving honestly.<br>Keep this monitoring page open if you like, we won't disappoint you!<br><br> 
 Loading the page could take a while since lot of things are going on here on your client side.<br> 
 This is what it is doing to verify our honesty:<ul> 
-<li id="descr_geth"><span>downloading from a public <a href="https://ethereum.org" target="_blank">Ethereum</a> node, via RPC, the last blocks along with the confirmed transactions</span></li> 
+<li id="descr_ethnode"><span>downloading from a public <a href="https://ethereum.org" target="_blank">Ethereum</a> node, via RPC, the last blocks along with the confirmed transactions</span></li> 
 <li id="descr_ipfs"><span>checking if any Oraclize proof reference is there, in which case the full proof is downloaded from a public <a href="https://ipfs.io" target="_blank">IPFS</a> gateway</span></li> 
 <li id="descr_tlsn"><span>verifying each proof is actually valid via <a href="https://tlsnotary.org/" target="_blank">TLSNotary</a></span></li> 
 </ul> 

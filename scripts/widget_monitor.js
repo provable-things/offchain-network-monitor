@@ -9,8 +9,8 @@ var ipfs_gateway_list = [
 // Ethereum node list
 var ethereum_node_list = [];
 
-// Name of geth node
-var geth_name_list = {
+// Name of ethnode node
+var ethnode_name_list = {
   'http://localhost:8545/' : {
     'desc': 'localhost:8545',
     'alias':'mainnet'
@@ -29,29 +29,29 @@ var geth_name_list = {
   }
 };
 
-var active_geth_node,
-    current_geth_chain;
+var active_ethnode_node,
+    current_ethnode_chain;
 var normal_start = true;
 
 // hash of the page
 var hash_is_set = false;
 
-// Current geth chain (default main net)
-current_geth_chain = 'mainnet';
+// Current ethnode chain (default main net)
+current_ethnode_chain = 'mainnet';
 
 function startup_tasks(){
 setTimeout(function(){
 // check if hash is set (in url)
 if(hash_is_set==false){
 // update oraclize node list
-postMessage({ type: 'update_oraclize_node_list', value: geth_name_list });
+postMessage({ type: 'update_oraclize_node_list', value: ethnode_name_list });
 
 // run function
-geth_node_update();
+ethnode_node_update();
 
 // update the select input with the node list
 postMessage({ type: 'ipfs_update_box', value: ipfs_gateway_list });
-postMessage({ type: 'geth_update_box', value: ethereum_node_list });
+postMessage({ type: 'ethnode_update_box', value: ethereum_node_list });
 
 
 postMessage({ type: 'hlUpdate', value: ['chart', true] });
@@ -59,41 +59,41 @@ postMessage({ type: 'hlUpdate', value: ['chart', true] });
 postMessage({ type: 'statusUpdate', value: ['tlsn', 0] });
 
 // active ethereum node
-active_geth_node = random_arr(ethereum_node_list);
+active_ethnode_node = random_arr(ethereum_node_list);
 
 console.log('hash set '+hash_is_set);
 
 
-  current_geth_chain = 'mainnet';
-  // shuffle the geth list
-  geth_name_list = shuffle(geth_name_list);
+  current_ethnode_chain = 'mainnet';
+  // shuffle the ethnode list
+  ethnode_name_list = shuffle(ethnode_name_list);
   // if no hash is set take a node from the mainnet chain
-  Object.keys(geth_name_list).forEach(function(i) {
-    var alias = geth_name_list[i]['alias'];
+  Object.keys(ethnode_name_list).forEach(function(i) {
+    var alias = ethnode_name_list[i]['alias'];
     if(alias=='mainnet'){
       // set a new node
-      active_geth_node = i;
+      active_ethnode_node = i;
       return;
     }
   });
 
-  // Active geth node
-  geth_node_req(active_geth_node);
-  // update the geth change
-  postMessage({ type: 'geth_change', value: active_geth_node.match(/\/(.*)\//).pop().replace(/\//g, '') });
+  // Active ethnode node
+  ethnode_node_req(active_ethnode_node);
+  // update the ethnode change
+  postMessage({ type: 'ethnode_change', value: active_ethnode_node.match(/\/(.*)\//).pop().replace(/\//g, '') });
   // update first IPFS change
   postMessage({ type: 'ipfs_change_start', value: active_ipfs_gateway.match(/\/(.*)\//).pop().match(/\/(.*)\//).pop() });
 }
 
 
-console.log('Connecting to ethereum node: '+active_geth_node);
+console.log('Connecting to ethereum node: '+active_ethnode_node);
 }, 1750);
 }
 
 // update ethereum node list
-function geth_node_update(){
+function ethnode_node_update(){
   ethereum_node_list = [];
-  Object.keys(geth_name_list).forEach(function(i) {
+  Object.keys(ethnode_name_list).forEach(function(i) {
     ethereum_node_list.push(i);
   });
 }
@@ -127,18 +127,18 @@ if ((typeof stdLoad == 'undefined')||(stdLoad == false)){
 }
 
 postMessage({ type: 'statusUpdate', value: ['tlsn', 1] });
-postMessage({ type: 'statusUpdate', value: ['geth', 0] });
-postMessage({ type: 'depsLoad_update', value: 'Connecting to geth..' });
+postMessage({ type: 'statusUpdate', value: ['ethnode', 0] });
+postMessage({ type: 'depsLoad_update', value: 'Connecting to ethnode..' });
 
 // Connect to ethereum node
 var Web3 = require('web3');
 var web3;
 
 // Ethereum error number counter
-var geth_err_n = 0;
+var ethnode_err_n = 0;
 
 // Function to make new web3 request
-function geth_node_req(node){
+function ethnode_node_req(node){
   web3 = new Web3();
   web3.setProvider(new web3.providers.HttpProvider(node));
 }
@@ -167,7 +167,7 @@ var active_ipfs_gateway = random_arr(ipfs_gateway_list);
 var timeout_betw_retry_ipfs = 2000;
 
 // Timeout between new Ethereum node retry (ms)
-var timeout_betw_retry_geth = 2000;
+var timeout_betw_retry_ethnode = 2000;
 
 // Timeout of xhr request (ms)
 var timeout_xhr_req = 4000;
@@ -176,21 +176,21 @@ var timeout_xhr_req = 4000;
 postMessage({ type: 'ipfs_change_start', value: active_ipfs_gateway.match(/\/(.*)\//).pop().match(/\/(.*)\//).pop() });
 
 
-// Change geth or ipfs node (choosen by the user)
+// Change ethnode or ipfs node (choosen by the user)
 self.onmessage = function(event) {
   normal_start = false;
-  if(event.data[0]=='change_node_geth'){
-    if(active_geth_node!=event.data[1]){
-      active_geth_node = event.data[1];
+  if(event.data[0]=='change_node_ethnode'){
+    if(active_ethnode_node!=event.data[1]){
+      active_ethnode_node = event.data[1];
       ethereum_node_list.push(event.data[1]);
-      geth_node_req(active_geth_node);
+      ethnode_node_req(active_ethnode_node);
 
       if(event.data[2]){
         normal_start = true;
         hash_is_set = true;
         console.log('***');
-        postMessage({ type: 'geth_change', value: active_geth_node.match(/\/(.*)\//).pop().replace(/\//g, '') });
-	postMessage({ type: 'geth_update_box', value: ethereum_node_list });
+        postMessage({ type: 'ethnode_change', value: active_ethnode_node.match(/\/(.*)\//).pop().replace(/\//g, '') });
+	postMessage({ type: 'ethnode_update_box', value: ethereum_node_list });
       }      
     }
   }
@@ -206,15 +206,15 @@ self.onmessage = function(event) {
     }
   }
 
-  if(event.data[0]=='change_geth_chain'){
-    current_geth_chain = event.data[1];
+  if(event.data[0]=='change_ethnode_chain'){
+    current_ethnode_chain = event.data[1];
   }
 };
 
 // shuffle object
 function shuffle(){
   var temp = [];
-  Object.keys(geth_name_list).forEach(function(i) {
+  Object.keys(ethnode_name_list).forEach(function(i) {
     temp.push(i);
   });
   var currentIndex = temp.length, temporaryValue, randomIndex;
@@ -236,11 +236,11 @@ function shuffle(){
   var new_object = {};
   new_sort.forEach(function(ind) {
 
-    new_object[ind] = {'desc':geth_name_list[ind]['desc'],'alias':geth_name_list[ind]['alias']};
+    new_object[ind] = {'desc':ethnode_name_list[ind]['desc'],'alias':ethnode_name_list[ind]['alias']};
     new_arr.push(new_object);
 
   });
-  geth_name_list = new_object;
+  ethnode_name_list = new_object;
   return new_object;
 }
 
@@ -599,67 +599,67 @@ var ourTxs = {};
 var txs_count = 0;
 
 
-var geth_kb = 0;
+var ethnode_kb = 0;
 
-var timer_geth = 0;
+var timer_ethnode = 0;
 
 var timer_container;
 
-var geth_select_box_changed = 0;
+var ethnode_select_box_changed = 0;
 
 // sync data and chart every 20 seconds
 function go(){
-  postMessage({ type: 'statusUpdate', value: ['geth', 2] });
-  postMessage({ type: 'hlUpdate', value: ['geth', true] });
+  postMessage({ type: 'statusUpdate', value: ['ethnode', 2] });
+  postMessage({ type: 'hlUpdate', value: ['ethnode', true] });
   web3.eth.getBlockNumber(function(e, r){
 
-    // Mange geth errors
+    // Mange ethnode errors
     if(e){
-    (geth_err_n==0) ? geth_err_n=1:1+1;
+    (ethnode_err_n==0) ? ethnode_err_n=1:1+1;
 
     // Try the same node 3 times
-    if(geth_err_n<=3){
-      geth_err_n += 1;
-      console.log('Ethereum node error, attempt n.: '+(geth_err_n-1));
-      postMessage({ type:'geth_retry', value: geth_err_n-1 });
-      setTimeout(function(){ go(); return; }, timeout_betw_retry_geth);
+    if(ethnode_err_n<=3){
+      ethnode_err_n += 1;
+      console.log('Ethereum node error, attempt n.: '+(ethnode_err_n-1));
+      postMessage({ type:'ethnode_retry', value: ethnode_err_n-1 });
+      setTimeout(function(){ go(); return; }, timeout_betw_retry_ethnode);
     }
     else {
-      // Change geth node
+      // Change ethnode node
       console.log('Changing ethereum node');
-      var old_geth = active_geth_node;
-      ethereum_node_list.splice(ethereum_node_list.indexOf(active_geth_node),1);
-      delete geth_name_list[active_geth_node];
-      geth_node_update();
-      postMessage({ type: 'geth_update_box', value: ethereum_node_list });
-      Object.keys(geth_name_list).forEach(function(i) {
-      var alias = geth_name_list[i]['alias'];
-      if(alias==current_geth_chain && old_geth!=i){
+      var old_ethnode = active_ethnode_node;
+      ethereum_node_list.splice(ethereum_node_list.indexOf(active_ethnode_node),1);
+      delete ethnode_name_list[active_ethnode_node];
+      ethnode_node_update();
+      postMessage({ type: 'ethnode_update_box', value: ethereum_node_list });
+      Object.keys(ethnode_name_list).forEach(function(i) {
+      var alias = ethnode_name_list[i]['alias'];
+      if(alias==current_ethnode_chain && old_ethnode!=i){
         // set a new node
-        active_geth_node = i;
+        active_ethnode_node = i;
         return;
       }
       });  
 
-      console.log('Connecting to new ethereum node: '+active_geth_node);
-      geth_node_req(active_geth_node);
-      postMessage({ type: 'geth_change', value: active_geth_node.match(/\/(.*)\//).pop().replace(/\//g, '') });
-      postMessage({ type: 'geth_update_box', value: ethereum_node_list });
-      geth_err_n = 0;
+      console.log('Connecting to new ethereum node: '+active_ethnode_node);
+      ethnode_node_req(active_ethnode_node);
+      postMessage({ type: 'ethnode_change', value: active_ethnode_node.match(/\/(.*)\//).pop().replace(/\//g, '') });
+      postMessage({ type: 'ethnode_update_box', value: ethereum_node_list });
+      ethnode_err_n = 0;
       go();
       return;
     }
     
     }
     else {
-      geth_err_n = 0;
+      ethnode_err_n = 0;
       // ok
-    if(geth_select_box_changed==0){
-      postMessage({ type:'geth_change_to_select', value: 1 });
-      geth_select_box_changed = 1;
+    if(ethnode_select_box_changed==0){
+      postMessage({ type:'ethnode_change_to_select', value: 1 });
+      ethnode_select_box_changed = 1;
     }
   
-  postMessage({ type: 'statusUpdate', value: ['geth', 1] });
+  postMessage({ type: 'statusUpdate', value: ['ethnode', 1] });
   
   console.log(r)
   txs_count = 0;
@@ -673,9 +673,9 @@ function go(){
   ourTxs = {}; 
   for (i=i0; i>=0; i--) web3.eth.getBlock(r-i, true, function(e, r){
 
-    postMessage({ type: 'textUpdate', value: ['geth_lastblockn', "In sync w/ block #"+r.number] });
-    geth_kb += r.size/1000;
-    postMessage({ type: 'textUpdate', value: ['geth_kb', parseInt(geth_kb)] });
+    postMessage({ type: 'textUpdate', value: ['ethnode_lastblockn', "In sync w/ block #"+r.number] });
+    ethnode_kb += r.size/1000;
+    postMessage({ type: 'textUpdate', value: ['ethnode_kb', parseInt(ethnode_kb)] });
     blockList.push(r);
     if (typeof ourTxs[parseInt(r.number/step)] == 'undefined') ourTxs[parseInt(r.number/step)] = [[], []];
     txs_count += r.transactions.length;
@@ -704,8 +704,8 @@ function go(){
   var proofsoffset = proofs.length;
   fixDataSource();
   setTimeout(function(){ postMessage({ 'type': "honesty_update", 'value': "<span style='color: orange'>checking proofs..</span>" }); checkProofs(proofsoffset) }, 1500);
-  postMessage({ type: 'statusUpdate', value: ['geth', 1] });
-  postMessage({ type: 'hlUpdate', value: ['geth', false] });
+  postMessage({ type: 'statusUpdate', value: ['ethnode', 1] });
+  postMessage({ type: 'hlUpdate', value: ['ethnode', false] });
   postMessage({ type: 'hlUpdate', value: ['chart', false] });
   postMessage({ type: 'chartUpdate', value: dataSource });
   clearInterval(txmonli);

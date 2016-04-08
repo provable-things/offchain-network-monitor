@@ -183,8 +183,8 @@ try{
   loadWidgetStd();
 }
 
-// Oraclize public geth node
-var geth_name_list = {
+// Oraclize public ethnode node
+var ethnode_name_list = {
   'http://localhost:8545/' : {
     'desc': 'localhost:8545',
     'alias':'mainnet'
@@ -208,9 +208,9 @@ var node_by_hash = false;
 
 // Check if the hash of the Url is valid
 function check_oraclize_node(hash){
-  geth_name_list = shuffle(geth_name_list);
-  Object.keys(geth_name_list).forEach(function(i) {
-    var alias = geth_name_list[i]['alias'];
+  ethnode_name_list = shuffle(ethnode_name_list);
+  Object.keys(ethnode_name_list).forEach(function(i) {
+    var alias = ethnode_name_list[i]['alias'];
     if(alias==hash){
       node_by_hash = i;
       return;
@@ -219,9 +219,9 @@ function check_oraclize_node(hash){
 }
 
 // suffle object
-function shuffle(geth_name_list){
+function shuffle(ethnode_name_list){
   var temp = [];
-  Object.keys(geth_name_list).forEach(function(i) {
+  Object.keys(ethnode_name_list).forEach(function(i) {
     temp.push(i);
   });
   var currentIndex = temp.length, temporaryValue, randomIndex;
@@ -243,11 +243,11 @@ function shuffle(geth_name_list){
   var new_object = {};
   new_sort.forEach(function(ind) {
 
-    new_object[ind] = {'desc':geth_name_list[ind]['desc'],'alias':geth_name_list[ind]['alias']};
+    new_object[ind] = {'desc':ethnode_name_list[ind]['desc'],'alias':ethnode_name_list[ind]['alias']};
     new_arr.push(new_object);
 
   });
-  geth_name_list = new_object;
+  ethnode_name_list = new_object;
   return new_object;
 }
 
@@ -258,11 +258,11 @@ var chain = 'mainnet';
 setTimeout(function (){
 check_oraclize_node(hash);
 if(hash!="" && node_by_hash!=false){
-  $('.active_geth_node').html(node_by_hash.match(/\/(.*)\//).pop().replace(/\//g, ''));
+  $('.active_ethnode_node').html(node_by_hash.match(/\/(.*)\//).pop().replace(/\//g, ''));
   chain = hash;
-  w.postMessage(['change_geth_chain',hash]);
-  w.postMessage(['change_node_geth', node_by_hash,'alias']);
-  $('#geth_node').val(node_by_hash.match(/\/(.*)\//).pop().replace(/\//g, ''));
+  w.postMessage(['change_ethnode_chain',hash]);
+  w.postMessage(['change_node_ethnode', node_by_hash,'alias']);
+  $('#ethnode_node').val(node_by_hash.match(/\/(.*)\//).pop().replace(/\//g, ''));
 }
 
 },600);
@@ -278,15 +278,15 @@ function verifiedProgress(){
 }
 
 var current_ipfs;
-var current_geth;
+var current_ethnode;
 
-var start_geth_text = 0;
+var start_ethnode_text = 0;
 
 // Process events coming from the actual monitor code
 function processWidgetEv(event){
 
   if(event.data.type=='update_oraclize_node_list'){
-    geth_name_list = event.data.value;
+    ethnode_name_list = event.data.value;
   }
 
   // Update IPFS select box
@@ -303,16 +303,16 @@ function processWidgetEv(event){
         text : 'Enter custom node...'
     }));
   }
-  // update geth select box
-  else if(event.data.type=='geth_update_box'){
-    $('#geth_node').empty();
+  // update ethnode select box
+  else if(event.data.type=='ethnode_update_box'){
+    $('#ethnode_node').empty();
     $.each(event.data.value, function (i, item) {
-        $('#geth_node').append($('<option>', {
+        $('#ethnode_node').append($('<option>', {
             value: event.data.value[i].match(/\/(.*)\//).pop().replace(/\//g, ''),
-            text : (geth_name_list[event.data.value[i]]!=undefined) ? geth_name_list[event.data.value[i]]['desc'] : event.data.value[i].match(/\/(.*)\//).pop().replace(/\//g, '')
+            text : (ethnode_name_list[event.data.value[i]]!=undefined) ? ethnode_name_list[event.data.value[i]]['desc'] : event.data.value[i].match(/\/(.*)\//).pop().replace(/\//g, '')
         }));
     });
-    $('#geth_node').append($('<option>', {
+    $('#ethnode_node').append($('<option>', {
         value: 'CUSTOM',
         text : 'Enter custom node...'
     }));
@@ -324,7 +324,7 @@ function processWidgetEv(event){
     $('#ipfs_gateways').val(event.data.value);    
   }
 
-  // Update Geth and IPFS gateway (select box and text)
+  // Update ethnode and IPFS gateway (select box and text)
   if(event.data.type=='ipfs_change'){
 
     $('.active_ipfs_gateway').hide();
@@ -339,37 +339,37 @@ function processWidgetEv(event){
       $('#ipfs_gateways').val('http://'+event.data.value+'/ipfs/');
     }
   }
-  else if(event.data.type=='geth_change'){
-    start_geth_text += 1;
+  else if(event.data.type=='ethnode_change'){
+    start_ethnode_text += 1;
 
-    $('.active_geth_node').hide();
-    $('#geth_node').show();      
+    $('.active_ethnode_node').hide();
+    $('#ethnode_node').show();      
 
-    $('.active_geth_node').html(event.data.value);
-    $('#geth_node').val(event.data.value);
+    $('.active_ethnode_node').html(event.data.value);
+    $('#ethnode_node').val(event.data.value);
 
-    setTimeout(function(){$('#geth_node').val(event.data.value);}, 100);
+    setTimeout(function(){$('#ethnode_node').val(event.data.value);}, 100);
   }
 
-  // Show select box when ipfs and geth connection is stable
+  // Show select box when ipfs and ethnode connection is stable
   if(event.data.type=='ipfs_change_to_select' && event.data.value==1){
     //$('.active_ipfs_gateway').hide();
     //$('#ipfs_gateways').show();
   }
-  else if(event.data.type=='geth_change_to_select' && event.data.value==1){
-    //$('.active_geth_node').hide();
-    //$('#geth_node').show();
+  else if(event.data.type=='ethnode_change_to_select' && event.data.value==1){
+    //$('.active_ethnode_node').hide();
+    //$('#ethnode_node').show();
   }
 
-  if(event.data.type=='geth_retry'){
-    $('.active_geth_node').hide();
+  if(event.data.type=='ethnode_retry'){
+    $('.active_ethnode_node').hide();
 
-    if($('#geth_busy').html().indexOf("Retry # 3")>=0){
-      $('#geth_busy').html('<span style="" class="fa fa-spin fa-spinner"></span> Connecting to RPC node, ');
+    if($('#ethnode_busy').html().indexOf("Retry # 3")>=0){
+      $('#ethnode_busy').html('<span style="" class="fa fa-spin fa-spinner"></span> Connecting to RPC node, ');
     }
 
-    ($('#geth_busy').html().indexOf("Retry")>=0) ? $('#geth_busy').html($('#geth_busy').html().replace(/Retry.+, /,"")):1+1;
-    $('#geth_busy').append('Retry # '+event.data.value+', ');
+    ($('#ethnode_busy').html().indexOf("Retry")>=0) ? $('#ethnode_busy').html($('#ethnode_busy').html().replace(/Retry.+, /,"")):1+1;
+    $('#ethnode_busy').append('Retry # '+event.data.value+', ');
   }
   else if(event.data.type=='ipfs_retry'){
 
@@ -424,7 +424,7 @@ function processWidgetEv(event){
         else $("#widget_chart").removeClass("borderhover1Active");
 
       // is a Ethereum event    
-      } else if (event.data.value[0] == 'geth'){
+      } else if (event.data.value[0] == 'ethnode'){
         if (event.data.value[1]){
           $("#widget_"+event.data.value[0]).addClass("borderhover1Active");
           $("#descr_"+event.data.value[0]).css("color", "rgba(0, 185, 233, .75)");
@@ -478,8 +478,8 @@ function processWidgetEv(event){
           if($('#ipfs_busy').html().indexOf("Retry #")>=0){
             $('#ipfs_busy').html($('#ipfs_busy').html().replace(/Retry.+, /,""));
           }
-          else if($('#geth_busy').html().indexOf("Retry #")>=0){
-            $('#geth_busy').html($('#geth_busy').html().replace(/Retry.+, /,""));
+          else if($('#ethnode_busy').html().indexOf("Retry #")>=0){
+            $('#ethnode_busy').html($('#ethnode_busy').html().replace(/Retry.+, /,""));
           }
           $("#"+event.data.value[0]+"_loading").hide();
           $("#"+event.data.value[0]+"_busy").hide();
@@ -527,43 +527,43 @@ function loadWidgetStd(){
 }
 
 
-// Select geth node
-$('#geth_node').on('change', function() {console.log(this.value);
-  //$('#geth_node').hide();
-  //$('.active_geth_node').show();
+// Select ethnode node
+$('#ethnode_node').on('change', function() {console.log(this.value);
+  //$('#ethnode_node').hide();
+  //$('.active_ethnode_node').show();
   if(this.value!='CUSTOM'){
-    if(geth_name_list['http://'+this.value+'/']==undefined || hash==geth_name_list['http://'+this.value+'/']['alias'] || chain==geth_name_list['http://'+this.value+'/']['alias']){
-      current_geth = this.value;
-      $('.active_geth_node').html(current_geth);
+    if(ethnode_name_list['http://'+this.value+'/']==undefined || hash==ethnode_name_list['http://'+this.value+'/']['alias'] || chain==ethnode_name_list['http://'+this.value+'/']['alias']){
+      current_ethnode = this.value;
+      $('.active_ethnode_node').html(current_ethnode);
       resetWW();
-      w.postMessage(['change_node_geth', 'http://'+current_geth+'/']);
+      w.postMessage(['change_node_ethnode', 'http://'+current_ethnode+'/']);
     }
     else {
       // oraclize.it / index.html -> service/monitor
-      if(hash!=geth_name_list['http://'+this.value+'/']['alias']){
+      if(hash!=ethnode_name_list['http://'+this.value+'/']['alias']){
 	var currentUrl = window.location.href.split('#')[0];
-        window.location.href = currentUrl+"#"+geth_name_list['http://'+this.value+'/']['alias'];
+        window.location.href = currentUrl+"#"+ethnode_name_list['http://'+this.value+'/']['alias'];
         setTimeout(function (){ location.reload(); },250);
       }
     }
   }
   else {
-    var custom_geth = prompt("Enter custom node");
-    if(custom_geth!=null){
-      $('#geth_node').append($('<option>', {
-          value: custom_geth,
-          text : custom_geth
+    var custom_ethnode = prompt("Enter custom node");
+    if(custom_ethnode!=null){
+      $('#ethnode_node').append($('<option>', {
+          value: custom_ethnode,
+          text : custom_ethnode
       }));
-      $('.active_geth_node').html(custom_geth);
-      $('#geth_node').val(custom_geth);
-      current_geth = custom_geth;
+      $('.active_ethnode_node').html(custom_ethnode);
+      $('#ethnode_node').val(custom_ethnode);
+      current_ethnode = custom_ethnode;
       resetWW();
-      if(hash) w.postMessage(['change_geth_chain',hash]);
-      w.postMessage(['change_node_geth', custom_geth]);
+      if(hash) w.postMessage(['change_ethnode_chain',hash]);
+      w.postMessage(['change_node_ethnode', custom_ethnode]);
     }
-    //$('#geth_node').hide();
-    //$('#custom_geth_node').show();
-    //w.postMessage(['change_node_geth', 'http://'+this.value+'/']);    
+    //$('#ethnode_node').hide();
+    //$('#custom_ethnode_node').show();
+    //w.postMessage(['change_node_ethnode', 'http://'+this.value+'/']);    
   }
 });
 
