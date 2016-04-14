@@ -50,7 +50,6 @@ postMessage({ type: 'update_oraclize_node_list', value: ethnode_name_list });
 ethnode_node_update();
 
 // update the select input with the node list
-postMessage({ type: 'ipfs_update_box', value: ipfs_gateway_list });
 postMessage({ type: 'ethnode_update_box', value: ethereum_node_list });
 
 
@@ -81,8 +80,6 @@ console.log('hash set '+hash_is_set);
   ethnode_node_req(active_ethnode_node);
   // update the ethnode change
   postMessage({ type: 'ethnode_change', value: active_ethnode_node.match(/\/(.*)\//).pop().replace(/\//g, '') });
-  // update first IPFS change
-  postMessage({ type: 'ipfs_change_start', value: active_ipfs_gateway.match(/\/(.*)\//).pop().match(/\/(.*)\//).pop() });
 }
 
 
@@ -161,7 +158,7 @@ function random_arr(arr){
 var ipfs_error_n = 1;
 
 // active IPFS gateway
-var active_ipfs_gateway = random_arr(ipfs_gateway_list);
+var active_ipfs_gateway;
 
 // Timeout between new IPFS Gateway retry (ms)
 var timeout_betw_retry_ipfs = 2000;
@@ -172,9 +169,16 @@ var timeout_betw_retry_ethnode = 2000;
 // Timeout of xhr request (ms)
 var timeout_xhr_req = 4000;
 
+active_ipfs_gateway = random_arr(ipfs_gateway_list);
+
 // update first IPFS change
 postMessage({ type: 'ipfs_change_start', value: active_ipfs_gateway.match(/\/(.*)\//).pop().match(/\/(.*)\//).pop() });
 
+// update the select input with the node list
+postMessage({ type: 'ipfs_update_box', value: ipfs_gateway_list });
+
+// update first IPFS change
+postMessage({ type: 'ipfs_change_start', value: active_ipfs_gateway.match(/\/(.*)\//).pop().match(/\/(.*)\//).pop() });
 
 // Change ethnode or ipfs node (choosen by the user)
 self.onmessage = function(event) {
@@ -323,11 +327,14 @@ function xhr_req(gateway,proofID,datas,w,proofi){
     ipfs_error_n = 1;
     ipfs_gateway_list.splice(ipfs_gateway_list.indexOf(gateway),1);
     console.log(ipfs_gateway_list);
-    active_ipfs_gateway = random_arr(ipfs_gateway_list);
-    postMessage({ type: 'ipfs_change', value: active_ipfs_gateway.match(/\/(.*)\//).pop().match(/\/(.*)\//).pop() });
-    postMessage({ type: 'ipfs_update_box', value: ipfs_gateway_list });
-    xhr_req(active_ipfs_gateway,proofID,datas,w,proofi);
-
+	if(ipfs_gateway_list.length==0){ 
+    	postMessage({ type: 'ipfs_all_dw', value: 0 });
+	} else {
+		active_ipfs_gateway = random_arr(ipfs_gateway_list);
+		postMessage({ type: 'ipfs_change', value: active_ipfs_gateway.match(/\/(.*)\//).pop().match(/\/(.*)\//).pop() });
+		postMessage({ type: 'ipfs_update_box', value: ipfs_gateway_list });
+		xhr_req(active_ipfs_gateway,proofID,datas,w,proofi);
+	}
   }
   }
 
