@@ -15,15 +15,15 @@ var ethnode_name_list = {
     'desc': 'localhost:8545',
     'alias':'mainnet'
   },
-  'http://178.62.29.206:8081/': {
+  'http://eth-node-1.oraclize.it/': {
     'desc':'Oraclize Public Node - Mainnet',
     'alias':'mainnet'
   },
-  'http://178.62.29.206:8082/': {
+  'http://eth-testnet-node-1.oraclize.it/': {
     'desc':'Oraclize Public Node - Morden Testnet',
     'alias':'testnet'
   },
-  'http://178.62.29.206:8083/': {
+  'http://eth-testnet161-node-1.oraclize.it/': {
     'desc':'Oraclize Public Node - Testnet #161',
     'alias':'testnet_161'
   }
@@ -170,9 +170,6 @@ var timeout_betw_retry_ethnode = 2000;
 var timeout_xhr_req = 4000;
 
 active_ipfs_gateway = random_arr(ipfs_gateway_list);
-
-// update first IPFS change
-postMessage({ type: 'ipfs_change_start', value: active_ipfs_gateway.match(/\/(.*)\//).pop().match(/\/(.*)\//).pop() });
 
 // update the select input with the node list
 postMessage({ type: 'ipfs_update_box', value: ipfs_gateway_list });
@@ -325,16 +322,17 @@ function xhr_req(gateway,proofID,datas,w,proofi){
     // IPFS Gateway is down, change it (with a random one)
     console.log('IPFS Gateway is down, Changing Gateway...');
     ipfs_error_n = 1;
-    ipfs_gateway_list.splice(ipfs_gateway_list.indexOf(gateway),1);
+    //ipfs_gateway_list.splice(ipfs_gateway_list.indexOf(gateway),1);
     console.log(ipfs_gateway_list);
-	if(ipfs_gateway_list.length==0){ 
-    	postMessage({ type: 'ipfs_all_dw', value: 0 });
-	} else {
-		active_ipfs_gateway = random_arr(ipfs_gateway_list);
-		postMessage({ type: 'ipfs_change', value: active_ipfs_gateway.match(/\/(.*)\//).pop().match(/\/(.*)\//).pop() });
-		postMessage({ type: 'ipfs_update_box', value: ipfs_gateway_list });
-		xhr_req(active_ipfs_gateway,proofID,datas,w,proofi);
-	}
+    var new_ipfs_rand = random_arr(ipfs_gateway_list);
+    while(active_ipfs_gateway==new_ipfs_rand){
+        new_ipfs_rand = random_arr(ipfs_gateway_list);
+    }
+    active_ipfs_gateway = new_ipfs_rand;
+    postMessage({type: 'ipfs_retry', value: ipfs_error_n});
+    postMessage({ type: 'ipfs_change', value: active_ipfs_gateway.match(/\/(.*)\//).pop().match(/\/(.*)\//).pop() });
+    postMessage({ type: 'ipfs_update_box', value: ipfs_gateway_list });
+    xhr_req(active_ipfs_gateway,proofID,datas,w,proofi);
   }
   }
 

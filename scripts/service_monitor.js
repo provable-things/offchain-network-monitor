@@ -288,10 +288,6 @@ var start_ethnode_text = 0;
 
 // Process events coming from the actual monitor code
 function processWidgetEv(event){
-  if(event.data.type=="ipfs_all_dw"){
-    alert("All IPFS gateways are down, reload the page and try again with a custom IPFS node");
-  }
-
 
   if(event.data.type=='update_oraclize_node_list'){
     ethnode_name_list = event.data.value;
