@@ -189,15 +189,15 @@ var ethnode_name_list = {
     'desc': 'localhost:8545',
     'alias':'mainnet'
   },
-  'http://178.62.29.206:8081/': {
+  'http://eth-node-1.oraclize.it/': {
     'desc':'Oraclize Public Node - Mainnet',
     'alias':'mainnet'
   },
-  'http://178.62.29.206:8082/': {
+  'http://eth-testnet-node-1.oraclize.it/': {
     'desc':'Oraclize Public Node - Morden Testnet',
     'alias':'testnet'
   },
-  'http://178.62.29.206:8083/': {
+  'http://eth-testnet161-node-1.oraclize.it/': {
     'desc':'Oraclize Public Node - Testnet #161',
     'alias':'testnet_161'
   }
