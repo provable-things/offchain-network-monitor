@@ -1,7 +1,7 @@
 // IPFS Gateway list
 var ipfs_gateway_list = [
   'http://localhost:8082/ipfs/',
-  'http://46.101.46.100/ipfs/',
+  'http://ipfs-node-1.oraclize.it/ipfs/',
   'http://gateway.ipfs.io/ipfs/'
 ];
 
