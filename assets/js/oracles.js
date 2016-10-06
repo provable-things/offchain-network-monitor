@@ -89,12 +89,30 @@ var oraclize2 = {
   }
 }
 
+
+var oraclize3 = {
+  'name': 'oraclize3',
+  'main': {
+    "IP":"54.169.160.199",
+    "port":"10011",
+        'DI':'https://ec2.ap-southeast-1.amazonaws.com/?AWSAccessKeyId=AKIAI7NVQ33GYQCJDJKA&Action=DescribeInstances&Expires=2018-01-01&InstanceId=i-a878710c&SignatureMethod=HmacSHA256&SignatureVersion=2&Version=2014-10-01&Signature=fxWlTejJRr10HutmrUAu5xLHXMEEeL8XVPTNulFr2sU%3D',
+        'DV':'https://ec2.ap-southeast-1.amazonaws.com/?AWSAccessKeyId=AKIAI7NVQ33GYQCJDJKA&Action=DescribeVolumes&Expires=2018-01-01&SignatureMethod=HmacSHA256&SignatureVersion=2&Version=2014-10-01&VolumeId=vol-ec8f7d31&Signature=AdaZOfDzTGVFZTKyAl94AqKpk5Kap6lXRZuZ8SnMh58%3D',
+        'GCO':'https://ec2.ap-southeast-1.amazonaws.com/?AWSAccessKeyId=AKIAI7NVQ33GYQCJDJKA&Action=GetConsoleOutput&Expires=2018-01-01&InstanceId=i-a878710c&SignatureMethod=HmacSHA256&SignatureVersion=2&Version=2014-10-01&Signature=AlI35M%2Blksrg%2BQTTrQRJyI2NWY6M9O%2FtBne9gj8tdoA%3D',
+        'GU':'https://iam.amazonaws.com/?AWSAccessKeyId=AKIAI7NVQ33GYQCJDJKA&Action=GetUser&Expires=2018-01-01&SignatureMethod=HmacSHA256&SignatureVersion=2&Version=2010-05-08&Signature=72kIbKEhCgnXpenvG8oZLzxRdsnxXzOKGafOeTDddxM%3D',
+        'DIA':'https://ec2.ap-southeast-1.amazonaws.com/?AWSAccessKeyId=AKIAI7NVQ33GYQCJDJKA&Action=DescribeInstanceAttribute&Attribute=userData&Expires=2018-01-01&InstanceId=i-a878710c&SignatureMethod=HmacSHA256&SignatureVersion=2&Version=2014-10-01&Signature=v5wTi%2FfBcHfbEWUA2Cwy5eU3D%2FV7jMjFOqXgyVqyKbc%3D',
+        'instanceId': 'i-a878710c'
+  },
+  'sig': {
+    'modulus': [227, 228, 106, 47, 212, 253, 247, 40, 41, 31, 222, 76, 85, 144, 199, 35, 185, 202, 237, 81, 36, 30, 53, 242, 194, 67, 138, 77, 149, 188, 104, 69, 200, 247, 32, 84, 101, 91, 74, 165, 216, 42, 173, 183, 179, 77, 58, 67, 89, 33, 188, 213, 250, 237, 5, 51, 114, 84, 43, 28, 104, 101, 44, 93, 252, 3, 165, 199, 81, 183, 164, 98, 217, 59, 11, 103, 246, 39, 126, 195, 225, 215, 155, 157, 235, 0, 32, 51, 245, 186, 219, 102, 119, 201, 72, 99, 39, 56, 78, 49, 12, 105, 245, 126, 209, 210, 107, 55, 117, 144, 19, 255, 115, 176, 90, 93, 76, 246, 119, 8, 193, 209, 163, 99, 4, 56, 97, 93, 10, 157, 21, 38, 236, 44, 27, 73, 24, 80, 58, 200, 218, 28, 227, 21, 212, 218, 89, 46, 254, 110, 46, 226, 75, 138, 198, 210, 71, 168, 18, 128, 52, 91, 139, 249, 225, 30, 67, 25, 206, 13, 66, 252, 43, 121, 165, 253, 84, 132, 68, 82, 238, 67, 91, 145, 53, 48, 116, 75, 227, 128, 47, 59, 53, 165, 123, 52, 64, 111, 79, 57, 91, 220, 169, 135, 181, 254, 167, 153, 104, 18, 77, 233, 82, 25, 3, 218, 227, 200, 201, 66, 110, 57, 146, 40, 47, 200, 58, 252, 10, 100, 14, 192, 171, 78, 91, 39, 56, 166, 64, 67, 64, 40, 150, 179, 151, 44, 172, 39, 20, 228, 168, 9, 155, 143, 244, 255, 54, 55, 184, 173, 152, 101, 107, 101, 62, 232, 23, 74, 57, 224, 169, 221, 18, 100, 20, 156, 234, 149, 202, 59, 53, 147, 147, 50, 20, 115, 126, 255, 220, 10, 77, 205, 179, 171, 222, 130, 141, 73, 141, 176, 116, 43, 251, 7, 194, 158, 137, 98, 156, 144, 97, 149, 22, 53, 223, 250, 110, 44, 139, 53, 209, 22, 186, 235, 120, 37, 156, 59, 119, 184, 69, 250, 65, 178, 157, 3, 248, 114, 56, 96, 54, 45, 77, 54, 205, 157, 135, 234, 53, 249, 146, 83, 101, 184, 18, 221, 137, 193, 97, 146, 129, 149, 53, 27, 161, 157, 70, 212, 122, 0, 253, 146, 54, 19, 196, 21, 57, 22, 172, 50, 144, 79, 137, 6, 236, 3, 111, 31, 206, 200, 56, 189, 26, 27, 248, 70, 209, 140, 7, 101, 30, 11, 237, 12, 132, 86, 213, 40, 63, 110, 180, 243, 183, 35, 15, 17, 119, 6, 29, 155, 174, 83, 117, 81, 159, 101, 82, 20, 18, 70, 13, 61, 92, 137, 29, 119, 103, 66, 30, 94, 27, 163, 191, 205, 180, 215, 151, 20, 215, 253, 218, 192, 112, 79, 25, 191, 246, 214, 61, 140, 217, 95, 235, 89, 153, 209, 70, 250, 219, 190, 50, 215, 75, 167, 97, 41, 247, 78, 41, 240, 143, 168, 102, 142, 15, 19, 63, 29, 162, 199, 99, 216, 215, 216, 26, 17, 237, 143, 77, 110, 133, 180, 50, 58, 44, 43, 39, 2, 218, 151, 226, 225]
+  }
+}
+
 //there can be potentially multiple oracles to choose from
 var oracles = [];
-oracles.push(oraclize2);
+oracles.push(oraclize3);
 //all servers trusted to perform notary (including non-oracles)
 //TODO: configurable
-var pagesigner_servers = [oraclize2];//oracle, waxwing];
+var pagesigner_servers = [oraclize3];//oracle, waxwing];
 
 //assuming both events happened on the same day, get the time
 //difference between them in seconds
