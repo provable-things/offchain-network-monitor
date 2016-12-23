@@ -1,33 +1,33 @@
 // IPFS Gateway list
 var ipfs_gateway_list = [
-  'http://localhost:8082/ipfs/',
+  'https://ipfs.infura.io/ipfs/',
   'http://ipfs-node-1.oraclize.it/ipfs/',
-  'http://gateway.ipfs.io/ipfs/'
+  'http://ipfs.io/ipfs/'
 ];
-
 
 // Ethereum node list
 var ethereum_node_list = [];
 
-// Name of ethnode node
+// Public eth node
 var ethnode_name_list = {
-  'http://localhost:8545/' : {
-    'desc': 'localhost:8545',
+  'https://mainnet.infura.io/YwngtTceY6FmxDsqpgLf' : {
+    'desc': 'Infura - Mainnet',
     'alias':'mainnet'
   },
-  'http://eth-node-1.oraclize.it/': {
-    'desc':'Oraclize Public Node - Mainnet',
-    'alias':'mainnet'
-  },
-  'http://eth-testnet-node-1.oraclize.it/': {
-    'desc':'Oraclize Public Node - Morden Testnet',
+  'https://eth3.augur.net': {
+    'desc':'Augur - Ropsten Testnet',
     'alias':'testnet'
   },
-  'http://eth-testnet161-node-1.oraclize.it/': {
-    'desc':'Oraclize Public Node - Testnet #161',
-    'alias':'testnet_161'
+  'https://test-node2929.etherscan.io/': {
+    'desc':'Etherscan - Ropsten Testnet',
+    'alias':'testnet'
   }
 };
+
+var cbAddress = {
+  "testnet":"0xdc8f20170c0946accf9627b3eb1513cfd1c0499f",
+  "mainnet":"0x26588a9301b0428d95e6fc3a5024fce8bec12d51"
+}
 
 var active_ethnode_node,
     current_ethnode_chain;
@@ -79,7 +79,7 @@ console.log('hash set '+hash_is_set);
   // Active ethnode node
   ethnode_node_req(active_ethnode_node);
   // update the ethnode change
-  postMessage({ type: 'ethnode_change', value: active_ethnode_node.match(/\/(.*)\//).pop().replace(/\//g, '') });
+  postMessage({ type: 'ethnode_change', value: getUrlClean(active_ethnode_node) });
 }
 
 
@@ -99,28 +99,16 @@ if ((typeof stdLoad == 'undefined')||(stdLoad == false)){
   postMessage({ type: 'depsLoad_update', value: 'Loading web3..' });
   importScripts("/assets/js/web3.min.js");
   postMessage({ type: 'depsLoad_update', value: 'Loading tlsn..' });
-  importScripts("/assets/js/tlsn.js");
-  importScripts("/assets/js/tlsn_utils.js");
   importScripts("/assets/js/oracles.js");
-  importScripts("/assets/js/jsrsasign-latest-all-min.js");
   postMessage({ type: 'depsLoad_update', value: 'Loading certs..' });
   importScripts("/assets/js/rootcertslist.js");
   importScripts("/assets/js/rootcerts.js");
   importScripts("/assets/js/asn1.js");
   postMessage({ type: 'depsLoad_update', value: 'Loading crypto utils..' });
   importScripts("/assets/js/buffer.js");
-  importScripts("/assets/js/verifychain.js");
-  importScripts("/assets/js/core.js");
-  importScripts("/assets/js/aes.js");
-  importScripts("/assets/js/cipher-core.js");
-  importScripts("/assets/js/enc-base64.js");
-  importScripts("/assets/js/evpkdf.js");
-  importScripts("/assets/js/hmac.js");
-  importScripts("/assets/js/md5.js");
-  importScripts("/assets/js/pad-nopadding.js");
-  importScripts("/assets/js/sha1.js");
-  importScripts("/assets/js/sha256.js");
   importScripts("/assets/js/solidity.js");
+  importScripts("/assets/js/multihashes.js");
+  importScripts("/scripts/bundle.js");
 }
 
 postMessage({ type: 'statusUpdate', value: ['tlsn', 1] });
@@ -138,6 +126,22 @@ var ethnode_err_n = 0;
 function ethnode_node_req(node){
   web3 = new Web3();
   web3.setProvider(new web3.providers.HttpProvider(node));
+}
+
+function checkChain(){
+  try {
+    var genesis = web3.eth.getBlock(0).hash;
+  } catch(e){}
+
+  if(genesis=='0xd4e56740f876aef8c010b86a40d5f56745a118d0906a34e69aec8c0db1cb8fa3') return 'mainnet';
+  else if(genesis=='0x41941023680923e0fe4d74a34bdac8141f2540e3ae90623718e47d66d1ca4a2d') return 'testnet';
+  else return false;
+}
+
+function hexToBytes(hex) {
+    for (var bytes = [], c = 0; c < hex.length; c += 2)
+    bytes.push(parseInt(hex.substr(c, 2), 16));
+    return bytes;
 }
 
 // Hexadecimal to string conversion
@@ -161,21 +165,21 @@ var ipfs_error_n = 1;
 var active_ipfs_gateway;
 
 // Timeout between new IPFS Gateway retry (ms)
-var timeout_betw_retry_ipfs = 2000;
+var timeout_betw_retry_ipfs = 3000;
 
 // Timeout between new Ethereum node retry (ms)
 var timeout_betw_retry_ethnode = 2000;
 
 // Timeout of xhr request (ms)
-var timeout_xhr_req = 4000;
+var timeout_xhr_req = 10000;
 
-active_ipfs_gateway = random_arr(ipfs_gateway_list);
+active_ipfs_gateway = 'https://ipfs.infura.io/ipfs/';//random_arr(ipfs_gateway_list);
 
 // update the select input with the node list
 postMessage({ type: 'ipfs_update_box', value: ipfs_gateway_list });
 
 // update first IPFS change
-postMessage({ type: 'ipfs_change_start', value: active_ipfs_gateway.match(/\/(.*)\//).pop().match(/\/(.*)\//).pop() });
+postMessage({ type: 'ipfs_change_start', value: getUrlClean(active_ipfs_gateway) });
 
 // Change ethnode or ipfs node (choosen by the user)
 self.onmessage = function(event) {
@@ -190,19 +194,18 @@ self.onmessage = function(event) {
         normal_start = true;
         hash_is_set = true;
         console.log('***');
-        postMessage({ type: 'ethnode_change', value: active_ethnode_node.match(/\/(.*)\//).pop().replace(/\//g, '') });
-	postMessage({ type: 'ethnode_update_box', value: ethereum_node_list });
+        postMessage({ type: 'ethnode_change', value: getUrlClean(active_ethnode_node) });
+  postMessage({ type: 'ethnode_update_box', value: ethereum_node_list });
       }      
     }
-  }
-  else if(event.data[0]=='change_node_ipfs'){
+  } else if(event.data[0]=='change_node_ipfs'){
     if(active_ipfs_gateway!=event.data[1]){
       if(event.data[2]){
         ipfs_gateway_list.push(event.data[1]);
       }
       active_ipfs_gateway = event.data[1];
       //postMessage({ type: 'statusUpdate', value: ['ipfs', 2] });
-      postMessage({ type: 'ipfs_change', value: active_ipfs_gateway.match(/\/(.*)\//).pop().match(/\/(.*)\//).pop() });
+      postMessage({ type: 'ipfs_change', value: getUrlClean(active_ipfs_gateway) });
       //postMessage({ type: 'ipfs_update_box', value: ipfs_gateway_list });
     }
   }
@@ -245,16 +248,29 @@ function shuffle(){
   return new_object;
 }
 
+function getUrlClean(url){
+  if(url.match("https")) return url;
+  try {
+    return url.match(/\/(.*)\//).pop().match(/\/(.*)\//).pop();
+  } catch(e){}
+  try {
+    return url.match(/\/(.*)\//).pop().replace(/\//g, '');
+  } catch(e){
+    return url;
+  }
+}
 
 setTimeout(function(){
 if(normal_start) startup_tasks();
 }, 250);
 
+var ipfs_total_retry = 0;
+
 // XHR request function
-function xhr_req(gateway,proofID,datas,w,proofi){
+function get_ipfs_proof(gateway,proofID,datas,w,proofi){
 
   // Print a new connection
-  (ipfs_error_n==1) ? console.log('Connecting to IPFS Gateway: '+gateway) : 1+1;
+  if(ipfs_error_n==1) console.log('Connecting to IPFS Gateway: '+gateway);
 
   // Connect to IPFS Gateway
   // and GET the proof ID
@@ -276,25 +292,12 @@ function xhr_req(gateway,proofID,datas,w,proofi){
     ipfs_kb += a.length/1000;
 
     postMessage({ type: 'textUpdate', value: ['ipfs_kb', parseInt(ipfs_kb)] });
-    postMessage({ type: 'statusUpdate', value: ['tlsn', 2] });
-    postMessage({ type: 'hlUpdate', value: ['tlsn', true] });
-
-    // update TLSNotary ms
-    var _t0 = new Date().getTime();
-    console.log(verify_tlsn(a));
-    tlsn_ms += (new Date().getTime())-_t0;
-
-    postMessage({ type: 'textUpdate', value: ['tlsn_computetimems', parseInt(tlsn_ms)] });
-    postMessage({ type: 'hlUpdate', value: ['tlsn', false] });
-    postMessage({ type: 'statusUpdate', value: ['tlsn', 1] });
-    datas[w].tx_count_1b++;
-    datas[w].tx_count_1a--;
-    proofsok++;
-    postMessage({ type: 'chartUpdate', value: datas });
-    var newproofi = 0;
-    newproofi = proofi+1;
-    setTimeout(function(cpi){ checkProof(cpi) }, 3*200, newproofi);
-
+    var t0 = new Date().getTime();
+    console.log(a);
+    var proofType = getProofType(a);
+    console.log("Found "+proofType+" proof type");
+    var proofResult = externalVerifyProof(a);
+    updateChart(proofType,proofResult,dataSource,proofi,proofID,t0,w);
   }
   };
 
@@ -311,14 +314,26 @@ function xhr_req(gateway,proofID,datas,w,proofi){
   // manage all xhr errors
   function xhr_error_manager(){
   ipfs_error_n += 1;
+  ipfs_total_retry += 1;
   // Try the same IPFS Gateway 3 times
   if(ipfs_error_n<=3){
     // try a new IPFS gateway
     console.log('IPFS Gateway Error, Attempt n.: '+ipfs_error_n);
     postMessage({type: 'ipfs_retry', value: ipfs_error_n});
-    setTimeout(function(){ xhr_req(gateway,proofID,datas,w,proofi); }, timeout_betw_retry_ipfs);
+    setTimeout(function(){ get_ipfs_proof(gateway,proofID,datas,w,proofi); }, timeout_betw_retry_ipfs);
   }
   else {
+    if(ipfs_total_retry>=9){
+      proofsok++;
+      postMessage({ type: 'statusUpdate', value: ['ipfs', 1] });
+      postMessage({ type: 'hlUpdate', value: ['ipfs', false] });
+      postMessage({ type: 'chartUpdate', value: datas });
+      var newproofi = 0;
+      newproofi = proofi+1;
+      setTimeout(function(cpi){ checkProof(cpi) }, 3*200, newproofi);
+      ipfs_total_retry = 0;
+      return;
+    }
     // IPFS Gateway is down, change it (with a random one)
     console.log('IPFS Gateway is down, Changing Gateway...');
     ipfs_error_n = 1;
@@ -330,9 +345,9 @@ function xhr_req(gateway,proofID,datas,w,proofi){
     }
     active_ipfs_gateway = new_ipfs_rand;
     postMessage({type: 'ipfs_retry', value: ipfs_error_n});
-    postMessage({ type: 'ipfs_change', value: active_ipfs_gateway.match(/\/(.*)\//).pop().match(/\/(.*)\//).pop() });
+    postMessage({ type: 'ipfs_change', value: getUrlClean(active_ipfs_gateway) });
     postMessage({ type: 'ipfs_update_box', value: ipfs_gateway_list });
-    xhr_req(active_ipfs_gateway,proofID,datas,w,proofi);
+    get_ipfs_proof(active_ipfs_gateway,proofID,datas,w,proofi);
   }
   }
 
@@ -340,21 +355,66 @@ function xhr_req(gateway,proofID,datas,w,proofi){
   xhr.send();
 }
 
+var query_error = 0;
+function get_query_info(myid,cb){
+  var xhr2 = new XMLHttpRequest();
+  xhr2.open('GET', 'https://api.oraclize.it/v1/query/'+append_to_myid+myid+'/status', true);
+  xhr2.responseType = 'json';
+  xhr2.timeout = timeout_xhr_req;
+  xhr2.onload = function(e) {
+    if (this.status == 200) {
+      cb(this.response);
+    }
+  };
+
+  // Manage XHR error
+  xhr2.onerror = function(e){
+    console.log(e);
+    query_error();
+  };
+
+  // Manage XHR Timeouts
+  xhr2.ontimeout = function(e){
+    query_error();
+  };
+
+  function query_error(){
+    query_error += 1;
+    if(query_error<=3){
+      setTimeout(function() {
+        get_query_info(myid,cb);
+      }, 800);
+    } else {
+      query_error = 0;
+      return;
+    }
+  }
+
+  setTimeout(function() {
+    xhr2.send();
+  }, 800);
+}
+
 var ipfs_changed_to_select_box = 0;
 
 var proofsdone = [];
-
 
 // IPFS KBytes and TLSNotary milliseconds
 var ipfs_kb = 0;
 var tlsn_ms = 0;
 
-// Check every proof and if a proof is found get the proof from the IPFS gateway
+function externalVerifyProof(a){
+    postMessage({ type: 'textUpdate', value: ['lasthash', "Verifying proof "+(a).toString().substr(0, 25)+".."] });
+    return verifyProof(a);
+}
+
+// Check every proof
 function checkProof(proofi){
   console.log("Checking proofs["+proofi+"]");
   var cproof = proofs[proofi];
   if (typeof(cproof) == 'undefined'){
-    console.log("No such proof.");
+    resetProxy();
+    console.log('no such proof');
     return;
   }
 
@@ -387,23 +447,51 @@ function checkProof(proofi){
   for (var w=0; w<dataSource.length; w++){
     if (dataSource[w].block_n == nname){
       console.log("FOUND!");
-
-
-      postMessage({ type: 'statusUpdate', value: ['ipfs', 2] });
-      postMessage({ type: 'hlUpdate', value: ['ipfs', true] });
-      postMessage({ type: 'textUpdate', value: ['ipfs_lastid', "Downloading file <a href='"+active_ipfs_gateway+proofID+"' target='_blank'>"+proofID.toString().substr(0, 15)+"..</a>"] });
-
+      //console.log("*** "+proofID);
       // Make XHR request with all the data needed
-      xhr_req(active_ipfs_gateway,proofID,dataSource,w,proofi);
+      if(isValidMultihash(proofID)){
+        postMessage({ type: 'statusUpdate', value: ['ipfs', 2] });
+        postMessage({ type: 'hlUpdate', value: ['ipfs', true] });
+        postMessage({ type: 'textUpdate', value: ['ipfs_lastid', "Downloading file <a href='"+active_ipfs_gateway+proofID+"' target='_blank'>"+proofID.toString().substr(0, 15)+"..</a>"] });
+        get_ipfs_proof(active_ipfs_gateway,proofID,dataSource,w,proofi);
+      } else {
+        var proofContent = proofID;
+        if(typeof(myids[proofContent])!='undefined'){
+          if(!myids[proofContent][1]) return;
+          postMessage({ type: 'textUpdate', value: ['lasthash',"reset"]});
+          postMessage({ type: 'textUpdate', value: ['ipfs_lastid',"reset"]});
+          postMessage({ type: 'statusUpdate', value: ['ipfs', 1] });
+          postMessage({ type: 'hlUpdate', value: ['ipfs', false] });
+          var proofAscii = new Uint8Array(hexToBytes(web3.toAscii(proofContent.replace('0x',''))));
+          var t0 = new Date().getTime();
+          var proofType = getProofType(proofAscii);
+          if(typeof(proofType)!='undefined'){
+            console.log("Found "+proofType+" proof type");
+            var proofResult = externalVerifyProof(proofAscii);
+            updateChart(proofType,proofResult,dataSource,proofi,proofAscii,t0,w);
+            console.log(proofResult);
+          } else {
+            proofsok++;
+            console.log('No proof recognized');
+            //dataSource[w].tx_count_1b = false;
+            //dataSource[w].tx_count_1a = false;
+            dataSource[w].tx_count_1a--;
+            dataSource[w].tx_count_10++;
+            //dataSource[w].tx_count_1c = true;
+            postMessage({ type: 'chartUpdate', value: dataSource });
+            var newproofi = 0;
+            newproofi = proofi;
+            checkProof(newproofi+1);
+          }
+        }
+      }
 
       if(ipfs_error_n==0){
         if(ipfs_changed_to_select_box==0){
           postMessage({ type:'ipfs_change_to_select', value: 1 });
-
           ipfs_changed_to_select_box=1;
         }
       }
-
       break;
     }
   }
@@ -411,7 +499,6 @@ function checkProof(proofi){
 
 var honestyci;
 var proofsok = 0;
-
 
 function checkProofs(offset){
   checkProof(offset);
@@ -516,47 +603,148 @@ function convertBase(str, fromBaseAlphabet, toBaseAlphabet) {
   };
 }());
 
-
-function getProofID(input){
-
+var myids = [];
+var query_type = [];
+function getProof(input){
   var proofID = input;
   input = input.replace("0x","");
   var signature4byte = input.substr(0,8);
   var inputdata = input.substr(8);
+  var decodedSignature = "";
   if(signature4byte=="27dc297e"){
       // no proof
       return false;
   } else if(signature4byte=="38bbfa50"){
       // proof
-      proofID = base58.fromHex((solidity.decodeParams(["bytes32","string","bytes"],inputdata)[2]).replace("0x",""));
+      decodedSignature = solidity.decodeParams(["bytes32","string","bytes"],inputdata);
+      var myIdExtracted = decodedSignature[0].replace('0x','');
+      var proofContent = decodedSignature[2].replace("0x","");
+      var proofContentAscii = web3.toAscii(proofContent);
+      if(proofContentAscii=='None' || decodedSignature[2]=='0x' || proofContentAscii=='') return false;
+      console.log(myIdExtracted);
+      console.log(decodedSignature[2]);
+      if(typeof(query_type[myIdExtracted])=='undefined'){
+        query_type[myIdExtracted] = [];
+        /*get_query_info(myIdExtracted, function(result) {
+          var query_info = result;
+          try {
+            var datasource_type = query_info['result']['payload']['conditions'][0]['datasource'];
+            var full_query = query_info['result']['payload']['conditions'][0]['query'];
+            var query_result = query_info['result']['checks'][query_info['result']['checks'].length-1]['results'][0];
+            query_type[myIdExtracted] = [datasource_type,full_query,query_result];
+          } catch(e) {
+            console.error(e);
+          }
+        });*/
+      }
+      if(decodedSignature[2].length>70){
+        console.log('****** NOT VALID ');
+        var checkIfJson = proofContentAscii.indexOf("{");
+        if(checkIfJson!==-1){
+          try {
+            proofContent = JSON.parse(proofContentAscii.replace(/'/g,'"'));
+            if(proofContent.type=='hex' && typeof(proofContent.value)!='undefined'){
+              proofContent = proofContent.value;
+            }
+          } catch(e) {}
+        }
+        myids[proofContent] = [];
+        myids[proofContent] = [myIdExtracted,true];
+        return proofContent;
+      } else {
+        proofID = base58.fromHex((decodedSignature[2]).replace("0x",""));
+        if(isValidMultihash(proofID)){
+          console.log('****** VALID');
+          myids[proofID] = [];
+          myids[proofID] = [myIdExtracted,false];
+          return proofID;
+        }
+      }
   } else if(signature4byte=="7d242ae5"){
       // base price tx (with proof)
-      proofID = base58.fromHex((solidity.decodeParams(["uint","bytes"],inputdata)[1]).replace("0x",""));
+      decodedSignature = solidity.decodeParams(["uint","bytes"],inputdata);
+      proofID = base58.fromHex((decodedSignature[1]).replace("0x",""));
+      if(isValidMultihash(proofID)){
+        return proofID;
+      }
   } else {
      return false
   }
-if(proofID.length!=46) return false;
-return proofID;
 }
 
+function updateChart(type,result,datas,proofi,proof,time,w){
+  console.log(result);
+  if(!result.result){
+    //datas.tx_count_1b = false;
+    //datas.tx_count_1a = false;
+    //datas.tx_count_1i = false;
+    //datas[w].tx_count_1a++;
+    //datas.tx_count_1c++;
+    postMessage({ type: 'statusUpdate', value: ['ipfs', 1] });
+    postMessage({ type: 'hlUpdate', value: ['ipfs', false] });
+  } else {
+    if(result.subproof=='computation'){
+      //datas.tx_count_1b = false;
+      datas[w].tx_count_1a--;
+      datas[w].tx_count_1h++;
+      //datas.tx_count_1c = false;
+      //datas.tx_count_1i = false;
+    } else if(type=='tlsn'){
+      datas[w].tx_count_1a--;
+      datas[w].tx_count_1b++;
+      tlsn_ms += parseInt(new Date().getTime()-time);
+      postMessage({ type: 'statusUpdate', value: [type, 1] });
+      postMessage({ type: 'textUpdate', value: ['tlsn_computetimems', tlsn_ms] });
+    } else if(type=='android'){
+      //datas.tx_count_1b = false;
+      //datas.tx_count_1a = false;
+      //datas.tx_count_1c = false;
+      datas[w].tx_count_1a--;
+      datas[w].tx_count_1i++;
+      postMessage({ type: 'statusUpdate', value: [type, 2] });
+    }
+
+    postMessage({ type: 'hlUpdate', value: [type,false]});
+
+    if(isValidMultihash(proof)){
+      postMessage({ type: 'statusUpdate', value: ['ipfs', 1] });
+      postMessage({ type: 'hlUpdate', value: ['ipfs', false] });
+    } else {
+      postMessage({ type: 'statusUpdate', value: ['ipfs', 1] });
+      postMessage({ type: 'hlUpdate', value: ['ipfs', false] });
+    }
+  }
+  postMessage({ type: 'chartUpdate', value: datas });
+  proofsok++;
+  var newproofi = 0;
+  newproofi = proofi+1;
+  setTimeout(function(cpi){ checkProof(cpi); }, 3*200, newproofi);
+}
+
+function resetProxy(){
+    postMessage({ type: 'textUpdate', value: ['ipfs_lastid',"reset"]});
+    postMessage({ type: 'textUpdate', value: ['lasthash',"reset"]});
+    postMessage({ type: 'hlUpdate', value: ['reset'] });
+}
 
 // Adjust (fix) data source 
 function fixDataSource(){
   for (var blockn in ourTxs) {
+    console.log('blocknn '+blockn);
     if (ourTxs.hasOwnProperty(blockn)) {
       for (l=0; l<ourTxs[blockn][1].length; l++){
-        var proofID = getProofID(ourTxs[blockn][1][l].input);
+        var proofID = getProof(ourTxs[blockn][1][l].input);
         proofs.push([blockn, ourTxs[blockn][1][l].input, proofID]);
       }
       var alreadythere = false;
       for (l=0; l<dataSource.length; l++){
         if (dataSource[l].block_n == blockn){
-          dataSource[l] = { block_n: blockn, tx_count_0: dataSource[l].tx_count_0+ourTxs[blockn][0].length, tx_count_1a: dataSource[l].tx_count_1a+ourTxs[blockn][1].length, tx_count_1b: dataSource[l].tx_count_1b }
+          dataSource[l] = { block_n: blockn, tx_count_0: dataSource[l].tx_count_0+ourTxs[blockn][0].length, tx_count_1a: dataSource[l].tx_count_1a+ourTxs[blockn][1].length, tx_count_1b: dataSource[l].tx_count_1b,tx_count_1h: dataSource[l].tx_count_1h+ourTxs[blockn][1].length,tx_count_1i: dataSource[l].tx_count_1i+ourTxs[blockn][1].length }
           alreadythere = true;
           break;
         }
       }
-      if (!alreadythere) dataSource.push({ block_n: blockn, tx_count_0: ourTxs[blockn][0].length, tx_count_1a: ourTxs[blockn][1].length, tx_count_1b: 0 });
+      if (!alreadythere) dataSource.push({ block_n: blockn, tx_count_0: ourTxs[blockn][0].length, tx_count_1a: ourTxs[blockn][1].length, tx_count_1b: 0,tx_count_1h:0,tx_count_1i:0 });
     }
   }
 
@@ -582,7 +770,7 @@ function fixDataSource(){
     for (l=0; l<nds.length; l++){
       if (nds[l].block_n == k){
         alreadythere = true;
-        nds[l] = { block_n: k, tx_count_0: dataSource[i].tx_count_0+nds[l].tx_count_0, tx_count_1a: dataSource[i].tx_count_1a+nds[l].tx_count_1a, tx_count_1b: dataSource[i].tx_count_1b+nds[l].tx_count_1b };
+        nds[l] = { block_n: k, tx_count_0: dataSource[i].tx_count_0+nds[l].tx_count_0, tx_count_1a: dataSource[i].tx_count_1a+nds[l].tx_count_1a, tx_count_1b: dataSource[i].tx_count_1b+nds[l].tx_count_1b,tx_count_1i: dataSource[i].tx_count_1i+nds[l].tx_count_1i};
         break;
       }
     }
@@ -612,6 +800,34 @@ var timer_container;
 
 var ethnode_select_box_changed = 0;
 
+var append_to_myid = '';
+
+function changeWeb3Node(){
+  // Change ethnode node
+  console.log('Changing ethereum node');
+  var old_ethnode = active_ethnode_node;
+  ethereum_node_list.splice(ethereum_node_list.indexOf(active_ethnode_node),1);
+  delete ethnode_name_list[active_ethnode_node];
+  ethnode_node_update();
+  postMessage({ type: 'ethnode_update_box', value: ethereum_node_list });
+  Object.keys(ethnode_name_list).forEach(function(i) {
+    var alias = ethnode_name_list[i]['alias'];
+    if(alias==current_ethnode_chain && old_ethnode!=i){
+      // set a new node
+      active_ethnode_node = i;
+      return;
+    }
+  });  
+
+  console.log('Connecting to new ethereum node: '+active_ethnode_node);
+  ethnode_node_req(active_ethnode_node);
+  postMessage({ type: 'ethnode_change', value: getUrlClean(active_ethnode_node) });
+  postMessage({ type: 'ethnode_update_box', value: ethereum_node_list });
+  ethnode_err_n = 0;
+  go();
+  return;
+}
+
 // sync data and chart every 20 seconds
 function go(){
   postMessage({ type: 'statusUpdate', value: ['ethnode', 2] });
@@ -620,7 +836,7 @@ function go(){
 
     // Mange ethnode errors
     if(e){
-    (ethnode_err_n==0) ? ethnode_err_n=1:1+1;
+    if(ethnode_err_n==0) ethnode_err_n=1;
 
     // Try the same node 3 times
     if(ethnode_err_n<=3){
@@ -628,44 +844,24 @@ function go(){
       console.log('Ethereum node error, attempt n.: '+(ethnode_err_n-1));
       postMessage({ type:'ethnode_retry', value: ethnode_err_n-1 });
       setTimeout(function(){ go(); return; }, timeout_betw_retry_ethnode);
-    }
-    else {
-      // Change ethnode node
-      console.log('Changing ethereum node');
-      var old_ethnode = active_ethnode_node;
-      ethereum_node_list.splice(ethereum_node_list.indexOf(active_ethnode_node),1);
-      delete ethnode_name_list[active_ethnode_node];
-      ethnode_node_update();
-      postMessage({ type: 'ethnode_update_box', value: ethereum_node_list });
-      Object.keys(ethnode_name_list).forEach(function(i) {
-      var alias = ethnode_name_list[i]['alias'];
-      if(alias==current_ethnode_chain && old_ethnode!=i){
-        // set a new node
-        active_ethnode_node = i;
-        return;
-      }
-      });  
-
-      console.log('Connecting to new ethereum node: '+active_ethnode_node);
-      ethnode_node_req(active_ethnode_node);
-      postMessage({ type: 'ethnode_change', value: active_ethnode_node.match(/\/(.*)\//).pop().replace(/\//g, '') });
-      postMessage({ type: 'ethnode_update_box', value: ethereum_node_list });
-      ethnode_err_n = 0;
-      go();
-      return;
+    } else {
+      changeWeb3Node();
     }
     
     }
     else {
       ethnode_err_n = 0;
-      // ok
+
     if(ethnode_select_box_changed==0){
       postMessage({ type:'ethnode_change_to_select', value: 1 });
       ethnode_select_box_changed = 1;
     }
   
   postMessage({ type: 'statusUpdate', value: ['ethnode', 1] });
-  
+  var chain = checkChain();
+  if(chain){
+    append_to_myid = 'eth_'+chain+'_';
+  }   
   console.log(r)
   txs_count = 0;
   atx = 0;
@@ -677,21 +873,27 @@ function go(){
   var newproofs = 0;
   ourTxs = {}; 
   for (i=i0; i>=0; i--) web3.eth.getBlock(r-i, true, function(e, r){
-
+    if(e){
+      console.error(e);
+      return;
+    }
+    if(typeof r == "undefined") return;
     postMessage({ type: 'textUpdate', value: ['ethnode_lastblockn', "In sync w/ block #"+r.number] });
     ethnode_kb += r.size/1000;
     postMessage({ type: 'textUpdate', value: ['ethnode_kb', parseInt(ethnode_kb)] });
     blockList.push(r);
     if (typeof ourTxs[parseInt(r.number/step)] == 'undefined') ourTxs[parseInt(r.number/step)] = [[], []];
     txs_count += r.transactions.length;
+    var cbAddressActive = cbAddress[chain];
+    postMessage({ type: 'blockLoad_update', value: parseInt(100*blockList.length/(step*sstep)) });
     for (k=0; k<r.transactions.length; k++){
 
       // Check if the sender address is from Oraclize
-      if (r.transactions[k].from == "0x26588a9301b0428d95e6fc3a5024fce8bec12d51"){
+      if (r.transactions[k].from == cbAddressActive){
         atx++;
         //console.log(JSON.stringify(r.transactions[k]));
-        if (getProofID(r.transactions[k].input) != false){
-          // TLSNotary proof is there!
+        if (getProof(r.transactions[k].input) != false){
+          // proof is there!
           console.log("proof!");
           newproofs++;
           ourTxs[parseInt(r.number/step)][1].push(r.transactions[k]);
@@ -699,22 +901,21 @@ function go(){
       }
       txs_loaded++;
     }
-  postMessage({ type: 'blockLoad_update', value: parseInt(100*blockList.length/(step*sstep)) });
-
-    
-
   });
   txmonli = setInterval(function(){ if (blockList.length >= step*sstep){
-  postMessage({ 'type': "honesty_show" });
-  var proofsoffset = proofs.length;
-  fixDataSource();
-  setTimeout(function(){ postMessage({ 'type': "honesty_update", 'value': "<span style='color: orange'>checking proofs..</span>" }); checkProofs(proofsoffset) }, 1500);
+  setTimeout(function(){
+    postMessage({ 'type': "honesty_show" });
+    var proofsoffset = proofs.length;
+    fixDataSource();
+    postMessage({ 'type': "honesty_update", 'value': "<span style='color: orange'>checking proofs..</span>" });
+    checkProofs(proofsoffset);
+  }, 2500);
   postMessage({ type: 'statusUpdate', value: ['ethnode', 1] });
   postMessage({ type: 'hlUpdate', value: ['ethnode', false] });
   postMessage({ type: 'hlUpdate', value: ['chart', false] });
   postMessage({ type: 'chartUpdate', value: dataSource });
   clearInterval(txmonli);
-  }  }, 200);
+  }  }, 800);
 }
 });
 }
@@ -723,149 +924,10 @@ setTimeout(function(){
 go();
 },2501);
 
-// imported_data is an array of numbers
-var chosen_notary = oracles[Math.random()*(oracles.length) << 0];
-
-// Verify TLSNotary and check if is valid
-function verify_tlsn(data, from_past){
-  var data = ua2ba(data);
-  var offset = 0;
-  if (ba2str(data.slice(offset, offset+=29)) !== "tlsnotary notarization file\n\n"){
-    throw('wrong header');
+isValidMultihash = function(proofid){
+  try {
+    return (typeof(Multihashes.validate(Multihashes.fromB58String(proofid)))=='undefined') ? true:false;
+  } catch(e) {
+    return false;
   }
-  if(data.slice(offset, offset+=2).toString() !== [0x00, 0x01].toString()){
-    throw('wrong version');
-  }
-  var cs = ba2int(data.slice(offset, offset+=2));
-  var cr = data.slice(offset, offset+=32);
-  var sr = data.slice(offset, offset+=32);
-  var pms1 = data.slice(offset, offset+=24);
-  var pms2 = data.slice(offset, offset+=24);
-  var chain_serialized_len = ba2int(data.slice(offset, offset+=3));
-  var chain_serialized = data.slice(offset, offset+=chain_serialized_len);
-  var tlsver = data.slice(offset, offset+=2);
-  var tlsver_initial = data.slice(offset, offset+=2);
-  var response_len = ba2int(data.slice(offset, offset+=8));
-  var response = data.slice(offset, offset+=response_len);
-  var IV_len = ba2int(data.slice(offset, offset+=2));
-  var IV = data.slice(offset, offset+=IV_len);
-  var sig_len = ba2int(data.slice(offset, offset+=2));
-  var sig = data.slice(offset, offset+=sig_len);
-  var commit_hash = data.slice(offset, offset+=32);
-  var notary_pubkey = data.slice(offset, offset+=sig_len);
-  assert (data.length === offset, 'invalid .pgsg length');
-
-  offset = 0;
-  var chain = []; //For now we only use the 1st cert in the chain
-  while(offset < chain_serialized.length){
-    var len = ba2int(chain_serialized.slice(offset, offset+=3));
-    var cert = chain_serialized.slice(offset, offset+=len);
-    chain.push(cert);
-  }
-  
-  var commonName = getCommonName(chain[0]);
-  //verify cert
- /* if (!verifyCert(chain)){
-    throw ('certificate verification failed');
-  }
-*/
-  var modulus = getModulus(chain[0]);
-  //verify commit hash
-  if (sha256(response).toString() !== commit_hash.toString()){
-    throw ('commit hash mismatch');
-  }
-  postMessage({ type: 'textUpdate', value: ['tlsn_lasthash', "Verifying proof "+(commit_hash).toString().substr(0, 25)+".."] });
-  //verify sig
-  var signed_data = sha256([].concat(commit_hash, pms2, modulus));
-  var signing_key;
-  if (from_past){signing_key = notary_pubkey;}
-  else {signing_key = chosen_notary.sig.modulus;}
-  if (!verify_commithash_signature(signed_data, sig, signing_key)){
-    throw ('notary signature verification failed');
-  }
-  //decrypt html and check MAC
-  var s = new TLSNClientSession();
-  s.__init__();
-  s.unexpected_server_app_data_count = response.slice(0,1);
-  s.chosen_cipher_suite = cs;
-  s.client_random = cr;
-  s.server_random = sr;
-  s.auditee_secret = pms1.slice(2, 2+s.n_auditee_entropy);
-  s.initial_tlsver = tlsver_initial;
-  s.tlsver = tlsver;
-  s.server_modulus = modulus;
-  s.set_auditee_secret();
-  s.auditor_secret = pms2.slice(0, s.n_auditor_entropy);
-  s.set_auditor_secret();
-  s.set_master_secret_half(); //#without arguments sets the whole MS
-  s.do_key_expansion(); //#also resets encryption connection state
-  s.store_server_app_data_records(response.slice(1));
-  s.IV_after_finished = IV;
-  s.server_connection_state.seq_no += 1;
-  s.server_connection_state.IV = s.IV_after_finished;
-  html_with_headers = decrypt_html(s);
-  return [html_with_headers,commonName, data, notary_pubkey];
 }
-
-
-
-
-
-
-function getModulus(cert){
-  var c = Certificate.decode(new Buffer(cert), 'der');
-  var pk = c.tbsCertificate.subjectPublicKeyInfo.subjectPublicKey.data;
-  var pkba = ua2ba(pk);
-  //expected modulus length 256, 384, 512
-  var modlen = 256;
-  if (pkba.length > 384) modlen = 384;
-  if (pkba.length > 512) modlen = 512;
-  var modulus = pkba.slice(pkba.length - modlen - 5, pkba.length -5);
-  return modulus;
-}
-
-
-function getCommonName(cert){
-  var c = Certificate.decode(new Buffer(cert), 'der');
-  var fields = c.tbsCertificate.subject.value;
-  for (var i=0; i < fields.length; i++){
-    if (fields[i][0].type.toString() !== [2,5,4,3].toString()) continue;
-    //first 2 bytes are DER-like metadata
-    return ba2str(fields[i][0].value.slice(2));
-  }
-  return 'unknown';
-}
-
-function verifyCert(chain){
-  var chainperms = permutator(chain);
-  for (var i=0; i < chainperms.length; i++){
-    if (verifyCertChain(chainperms[i])){
-      return true;
-    }
-  }
-  return false;
-}
-
-
-
-function permutator(inputArr) {
-  var results = [];
-
-  function permute(arr, memo) {
-    var cur, memo = memo || [];
-
-    for (var i = 0; i < arr.length; i++) {
-      cur = arr.splice(i, 1);
-      if (arr.length === 0) {
-        results.push(memo.concat(cur));
-      }
-      permute(arr.slice(), memo.concat(cur));
-      arr.splice(i, 0, cur[0]);
-    }
-
-    return results;
-  }
-
-  return permute(inputArr);
-}
-

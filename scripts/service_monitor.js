@@ -87,7 +87,7 @@ borderc = {
 
 // dxChart chart settings
 $(".txmon").dxChart({
-  dataSource: [], 
+  dataSource: [],
   animation: {
     enabled: true,
     duration: 200
@@ -102,17 +102,42 @@ $(".txmon").dxChart({
   },
   {
   argumentField: "block_n",
+  valueField: "tx_count_1a",
+  name: "Proof",
+  type: "stackedbar",
+  color: '#D3D3D3',
+  border: borderc
+  },
+  {
+  argumentField: "block_n",
   valueField: "tx_count_1b",
   name: "Proof_verified",
   type: "stackedbar",
   color: '#42b30a',
   border: borderc
-  },{
+  },
+  /*{
   argumentField: "block_n",
-  valueField: "tx_count_1a",
-  name: "Proof",
+  valueField: "tx_count_1c",
+  name: "Proof_mismatch",
   type: "stackedbar",
-  color: '#99ff66',
+  color: '#6DEC2E',
+  border: borderc
+  },*/
+  {
+  argumentField: "block_n",
+  valueField: "tx_count_1i",
+  name: "Proof_android",
+  type: "stackedbar",
+  color: '#6A6ACD',
+  border: borderc
+  },
+  {
+  argumentField: "block_n",
+  valueField: "tx_count_1h",
+  name: "Proof_computation",
+  type: "stackedbar",
+  color: '#FA8072',
   border: borderc
   }],
   legend: { visible: true, margin: { top: 30 }, orientation: 'horizontal', verticalAlignment: 'bottom', horizontalAlignment: 'center', border: { visible: false },
@@ -120,31 +145,46 @@ $(".txmon").dxChart({
       // set x legend labels
       switch(x.seriesName){
         case "Proof_verified":
-          return "Proof verified";
+          return "TLSN proof (verified)";
           break;
         case "Proof":
           return "Proof not verified yet";
           break;
+        case "Proof_computation":
+          return "COMPUTATION proof (verified)";
+          break;
+        case "Proof_android":
+          return "ANDROID proof (verified)";
+        case "Noproof":
+          return "Not requested";
         default:
-          return "Proof not requested";
           break;
       }
     }
   },
   tooltip: {
     enabled: true,
+    container: $('.txmon'),
     customizeTooltip: function (value) {
       // Set tooltip text
       desc = "Oraclize tx - ";
       switch(value.seriesName){
         case "Proof_verified":
-          desc += "proof verified";
+          desc += "TLSN proof verified";
           break;
         case "Proof":
-          desc += "proof not verified yet, please wait..";
+          desc += "Proof not verified yet";
+          break;
+        case "Proof_computation":
+          desc += "COMPUTATION proof verified";
+          break;
+        case "Proof_android":
+          desc += "ANDROID proof verified";
+          break;
+        case "Noproof":
+          desc += "Not requested";
           break;
         default:
-          desc += "proof not requested";
           break;
       }
       return {text: desc};
@@ -163,7 +203,7 @@ try{
   if(typeof(w) == "undefined") {
 
     // Initialize a new Web Worker
-    w = new Worker("/scripts/widget_monitor.js");
+    w = new Worker("scripts/widget_monitor.js");
 
     // If Web Worker is not available (or we get an error), use fallback
     w.onerror = function(event){
@@ -183,23 +223,26 @@ try{
   loadWidgetStd();
 }
 
-// Oraclize public ethnode node
 var ethnode_name_list = {
-  'http://localhost:8545/' : {
-    'desc': 'localhost:8545',
-    'alias':'mainnet'
-  },
-  'http://eth-node-1.oraclize.it/': {
+  /*'http://eth-node-1.oraclize.it/': {
     'desc':'Oraclize Public Node - Mainnet',
     'alias':'mainnet'
   },
   'http://eth-testnet-node-1.oraclize.it/': {
-    'desc':'Oraclize Public Node - Morden Testnet',
+    'desc':'Oraclize Public Node - Ropsten Testnet',
+    'alias':'testnet'
+  },*/
+  'https://mainnet.infura.io/YwngtTceY6FmxDsqpgLf' : {
+    'desc': 'Infura - Mainnet',
+    'alias':'mainnet'
+  },
+  'https://eth3.augur.net': {
+    'desc':'Augur - Ropsten Testnet',
     'alias':'testnet'
   },
-  'http://eth-testnet161-node-1.oraclize.it/': {
-    'desc':'Oraclize Public Node - Testnet #161',
-    'alias':'testnet_161'
+  'https://test-node2929.etherscan.io/': {
+    'desc':'Etherscan - Ropsten Testnet',
+    'alias':'testnet'
   }
 };
 
@@ -258,11 +301,11 @@ var chain = 'mainnet';
 setTimeout(function (){
 check_oraclize_node(hash);
 if(hash!="" && node_by_hash!=false){
-  $('.active_ethnode_node').html(node_by_hash.match(/\/(.*)\//).pop().replace(/\//g, ''));
+  $('.active_ethnode_node').html(getUrlClean(node_by_hash));
   chain = hash;
   w.postMessage(['change_ethnode_chain',hash]);
   w.postMessage(['change_node_ethnode', node_by_hash,'alias']);
-  $('#ethnode_node').val(node_by_hash.match(/\/(.*)\//).pop().replace(/\//g, ''));
+  $('#ethnode_node').val(getUrlClean(node_by_hash));
 } else if(hash!="" && hash.indexOf(":")>0){
 	// custom IP:PORT hash
     $('.active_ethnode_node').html(hash);
@@ -298,8 +341,8 @@ function processWidgetEv(event){
     $('#ipfs_gateways').empty();
     $.each(event.data.value, function (i, item) {
         $('#ipfs_gateways').append($('<option>', {
-            value: event.data.value[i].match(/\/(.*)\//).pop().match(/\/(.*)\//).pop(),
-            text : event.data.value[i].match(/\/(.*)\//).pop().match(/\/(.*)\//).pop()
+            value: getUrlClean(event.data.value[i]),
+            text : getUrlClean(event.data.value[i])
         }));
     });
     $('#ipfs_gateways').append($('<option>', {
@@ -312,8 +355,8 @@ function processWidgetEv(event){
     $('#ethnode_node').empty();
     $.each(event.data.value, function (i, item) {
         $('#ethnode_node').append($('<option>', {
-            value: event.data.value[i].match(/\/(.*)\//).pop().replace(/\//g, ''),
-            text : (ethnode_name_list[event.data.value[i]]!=undefined) ? ethnode_name_list[event.data.value[i]]['desc'] : event.data.value[i].match(/\/(.*)\//).pop().replace(/\//g, '')
+            value: getUrlClean(event.data.value[i]),
+            text : (ethnode_name_list[event.data.value[i]]!=undefined) ? ethnode_name_list[event.data.value[i]]['desc'] : getUrlClean(event.data.value[i])
         }));
     });
     $('#ethnode_node').append($('<option>', {
@@ -372,7 +415,7 @@ function processWidgetEv(event){
       $('#ethnode_busy').html('<span style="" class="fa fa-spin fa-spinner"></span> Connecting to RPC node, ');
     }
 
-    ($('#ethnode_busy').html().indexOf("Retry")>=0) ? $('#ethnode_busy').html($('#ethnode_busy').html().replace(/Retry.+, /,"")):1+1;
+    if($('#ethnode_busy').html().indexOf("Retry")>=0) $('#ethnode_busy').html($('#ethnode_busy').html().replace(/Retry.+, /,""));
     $('#ethnode_busy').append('Retry # '+event.data.value+', ');
   }
   else if(event.data.type=='ipfs_retry'){
@@ -383,16 +426,17 @@ function processWidgetEv(event){
       $('#ipfs_busy').html('<span style="" class="fa fa-spin fa-spinner"></span> Connecting to IPFS node, ');
     }
 
-    ($('#ipfs_busy').html().indexOf("Retry")>=0) ? $('#ipfs_busy').html($('#ipfs_busy').html().replace(/Retry.+, /,"")):1+1;
+    if($('#ipfs_busy').html().indexOf("Retry")>=0) $('#ipfs_busy').html($('#ipfs_busy').html().replace(/Retry.+, /,""));
     $('#ipfs_busy').append('Retry # '+event.data.value+', ');
 
   }
 
   // check the different type of events and update HTML accordingly
   if (event.data.type == 'blockLoad_update'){
-    $(".txmon tspan").last().html("Loading blocks.. "+event.data.value+"%");
+    if($(".txmon text").last().html().indexOf("verified")!=-1 || event.data.value>100) return;
+    $(".txmon text").last().html("Loading blocks.. "+event.data.value+"%");
   } else if (event.data.type == 'depsLoad_update'){
-    $(".txmon tspan").last().html(event.data.value);
+    $(".txmon text").last().html(event.data.value);
   } else if (event.data.type == 'chartUpdate'){
 
   // Prevent chart to update too fast for the user (less than 1.5 seconds)
@@ -454,23 +498,22 @@ function processWidgetEv(event){
           $("#descr_"+event.data.value[0]+" span").css("color", "inherit");
         }
 
-      // is a TLSNotary event     
-      } else if (event.data.value[0] == 'tlsn'){
-        if (event.data.value[1]){
-          $("#widget_"+event.data.value[0]).addClass("borderhover1Active");
-          $("#descr_"+event.data.value[0]).css("color", "rgba(0, 185, 233, .75)");
-          $("#descr_"+event.data.value[0]+" span").css("color", "black");
-        }
-        else {
-          $("#widget_"+event.data.value[0]).removeClass("borderhover1Active");
-          $("#descr_"+event.data.value[0]).css("color", "inherit");
-          $("#descr_"+event.data.value[0]+" span").css("color", "inherit");
-        }
+      // is a proof event     
+      } else if (availableProofs.indexOf(event.data.value[0]) > -1){
+        updateProof(event.data.value[1],event.data.value[0]);
+      } else if(event.data.value[0]=="reset"){
+        $("#proofLinkURL").attr('href',"");
+        $("#proofImage").attr('src',"");
       }
 
       // is a text update event
       // ( i.e. IPFS current downloading file, Ethereum blocks progress, IPFS KBytes etc.. )
       } else if (event.data.type == 'textUpdate'){
+        //console.log('****** '+event.data.value);
+        if(event.data.value[1]=="reset"){
+          $("#"+event.data.value[0]).html('');
+          return;
+        }
         $("#"+event.data.value[0]).html(event.data.value[1]);
         $("#"+event.data.value[0]).parent().css("visibility", "visible");
       } else if (event.data.type == 'statusUpdate'){
@@ -498,6 +541,46 @@ function processWidgetEv(event){
 
 // Standard load false (use Web Worker by default)
 var stdLoad = false;
+
+var availableProofs = ["tlsn","android"];
+var proofContent = {
+  "tlsn": {
+    "link":"https://tlsnotary.org",
+    "img":"https://avatars1.githubusercontent.com/u/7814660"
+  },
+  "android":{
+    "link":"https://developer.android.com/training/safetynet/index.html",
+    "img":"http://kiosgadget.com/wp-content/uploads/2013/11/Android-300x300.png"
+  }
+};
+
+function getUrlClean(url){
+  if(url.match("https")) return url;
+  try {
+    return url.match(/\/(.*)\//).pop().match(/\/(.*)\//).pop();
+  } catch(e){}
+  try {
+    return url.match(/\/(.*)\//).pop().replace(/\//g, '');
+  } catch(e){
+    return url;
+  }
+}
+
+// update frontend proof
+function updateProof(textUpdate,type){
+  $("#proofLinkURL").attr('href',proofContent[type]["link"]);
+  $("#proofImage").attr('src',proofContent[type]["img"]);
+  if(textUpdate){
+    $("#widget_proof").addClass("borderhover1Active");
+    $("#descr_proof").css("color", "rgba(0, 185, 233, .75)");
+    $("#descr_proof"+" span").css("color", "black");
+  }
+  else {
+    $("#widget_proof").removeClass("borderhover1Active");
+    $("#descr_proof").css("color", "inherit");
+    $("#descr_proof"+" span").css("color", "inherit");
+  }
+}
 
 
 // Allow to pass messages (with type and value)
@@ -527,7 +610,7 @@ function loadWidgetStd(){
     $('body').append("<script src='"+url+"'></script>");
   }
 
-  $.importScripts("/scripts/widget_monitor.js");
+  $.importScripts("scripts/widget_monitor.js");
 }
 
 
@@ -602,6 +685,6 @@ $('#ipfs_gateways').on('change', function() {
 
 function resetWW(){
 	w.terminate();
-	w = new Worker("/scripts/widget_monitor.js");
+	w = new Worker("scripts/widget_monitor.js");
 	w.onmessage = processWidgetEv;
 }
