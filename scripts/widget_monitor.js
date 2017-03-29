@@ -403,9 +403,11 @@ var proofsdone = [];
 var ipfs_kb = 0;
 var tlsn_ms = 0;
 
+var verfServers = getVerifiedServers()
+
 function externalVerifyProof(a){
     postMessage({ type: 'textUpdate', value: ['lasthash', "Verifying proof "+(a).toString().substr(0, 25)+".."] });
-    return verifyProof(a);
+    return verifyProof(a, verfServers);
 }
 
 // Check every proof
