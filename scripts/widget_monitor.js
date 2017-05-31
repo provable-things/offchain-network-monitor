@@ -675,6 +675,7 @@ function getProof(input){
 }
 
 function updateChart(type,result,datas,proofi,proof,time,w){
+  if (type === 'ledger') type = 'computation'
   console.log(result);
   if(!result.result){
     //datas.tx_count_1b = false;

@@ -151,7 +151,7 @@ $(".txmon").dxChart({
           return "Proof not verified yet";
           break;
         case "Proof_computation":
-          return "COMPUTATION proof (verified)";
+          return "LEDGER proof (verified)";
           break;
         case "Proof_android":
           return "ANDROID proof (verified)";
@@ -176,7 +176,7 @@ $(".txmon").dxChart({
           desc += "Proof not verified yet";
           break;
         case "Proof_computation":
-          desc += "COMPUTATION proof verified";
+          desc += "LEDGER proof verified";
           break;
         case "Proof_android":
           desc += "ANDROID proof verified";
