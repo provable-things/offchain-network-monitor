@@ -1097,7 +1097,7 @@ exports.verify = (data, servers) => {
 		}
 
 		var signingKey;
-		var commitHashVerified = false;
+		/*var commitHashVerified = false;
 
 		for (var i = 0; i < servers.length; i++) {
 			var server = servers[i];
@@ -1110,7 +1110,7 @@ exports.verify = (data, servers) => {
 
 		if (!commitHashVerified) {
 			throw new Error('Matching notary server not found')
-		}
+		}*/
 
 		//Disable console log, needless verbose output from TLSNClientSession
 		var saveConsole = console.log;
