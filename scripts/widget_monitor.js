@@ -408,7 +408,7 @@ var ipfs_kb = 0;
 var tlsn_ms = 0;
 
 function externalVerifyProof(a){
-    postMessage({ type: 'textUpdate', value: ['lasthash', "Verifying proof "+(a).toString().substr(0, 25)+".."] });
+    postMessage({ type: 'textUpdate', value: ['lasthash', "Verifying proof "+Buffer.from(a).toString('hex').substr(0, 25)+".."] });
     return verifyProof(a);
 }
 
