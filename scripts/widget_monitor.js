@@ -14,18 +14,19 @@ var ethnode_name_list = {
     'desc': 'Infura - Mainnet',
     'alias':'mainnet'
   },
-  'https://eth3.augur.net': {
-    'desc':'Augur - Ropsten Testnet',
+  'https://ropsten.infura.io/': {
+    'desc':'Infura - Ropsten Testnet',
     'alias':'testnet'
   },
-  'https://test-node2929.etherscan.io/': {
-    'desc':'Etherscan - Ropsten Testnet',
-    'alias':'testnet'
+  'https://kovan.infura.io/': {
+    'desc':'Infura - Kovan Testnet',
+    'alias':'kovan'
   }
 };
 
 var cbAddress = {
   "testnet":"0xdc8f20170c0946accf9627b3eb1513cfd1c0499f",
+  "kovan":"0x8ebca32bd42d86ee51f762e968667e40b612b6f1",
   "mainnet":"0x26588a9301b0428d95e6fc3a5024fce8bec12d51"
 }
 
@@ -106,10 +107,12 @@ if ((typeof stdLoad == 'undefined')||(stdLoad == false)){
   importScripts("/assets/js/asn1.js");
   postMessage({ type: 'depsLoad_update', value: 'Loading crypto utils..' });
   importScripts("/assets/js/buffer.js");
-  importScripts("/assets/js/solidity.js");
+  importScripts("/assets/js/ethAbi.js");
   importScripts("/assets/js/multihashes.js");
   importScripts("/scripts/bundle.js");
 }
+
+//var tlsnServers = getVerifiedServers();
 
 postMessage({ type: 'statusUpdate', value: ['tlsn', 1] });
 postMessage({ type: 'statusUpdate', value: ['ethnode', 0] });
@@ -135,6 +138,7 @@ function checkChain(){
 
   if(genesis=='0xd4e56740f876aef8c010b86a40d5f56745a118d0906a34e69aec8c0db1cb8fa3') return 'mainnet';
   else if(genesis=='0x41941023680923e0fe4d74a34bdac8141f2540e3ae90623718e47d66d1ca4a2d') return 'testnet';
+  else if(genesis=='0xa3c565fc15c7478862d50ccd6561e3c06b24cc509bf388941c25ea985ce32cb9') return 'kovan';
   else return false;
 }
 
@@ -403,11 +407,9 @@ var proofsdone = [];
 var ipfs_kb = 0;
 var tlsn_ms = 0;
 
-var verfServers = getVerifiedServers()
-
 function externalVerifyProof(a){
     postMessage({ type: 'textUpdate', value: ['lasthash', "Verifying proof "+(a).toString().substr(0, 25)+".."] });
-    return verifyProof(a, verfServers);
+    return verifyProof(a);
 }
 
 // Check every proof
@@ -464,7 +466,7 @@ function checkProof(proofi){
           postMessage({ type: 'textUpdate', value: ['ipfs_lastid',"reset"]});
           postMessage({ type: 'statusUpdate', value: ['ipfs', 1] });
           postMessage({ type: 'hlUpdate', value: ['ipfs', false] });
-          var proofAscii = new Uint8Array(hexToBytes(web3.toAscii(proofContent.replace('0x',''))));
+          var proofAscii = proofContent;
           var t0 = new Date().getTime();
           var proofType = getProofType(proofAscii);
           if(typeof(proofType)!='undefined'){
@@ -613,69 +615,77 @@ function getProof(input){
   var signature4byte = input.substr(0,8);
   var inputdata = input.substr(8);
   var decodedSignature = "";
-  if(signature4byte=="27dc297e"){
-      // no proof
-      return false;
-  } else if(signature4byte=="38bbfa50"){
-      // proof
-      decodedSignature = solidity.decodeParams(["bytes32","string","bytes"],inputdata);
-      var myIdExtracted = decodedSignature[0].replace('0x','');
-      var proofContent = decodedSignature[2].replace("0x","");
-      var proofContentAscii = web3.toAscii(proofContent);
-      if(proofContentAscii=='None' || decodedSignature[2]=='0x' || proofContentAscii=='') return false;
-      console.log(myIdExtracted);
-      console.log(decodedSignature[2]);
-      if(typeof(query_type[myIdExtracted])=='undefined'){
-        query_type[myIdExtracted] = [];
-        /*get_query_info(myIdExtracted, function(result) {
-          var query_info = result;
-          try {
-            var datasource_type = query_info['result']['payload']['conditions'][0]['datasource'];
-            var full_query = query_info['result']['payload']['conditions'][0]['query'];
-            var query_result = query_info['result']['checks'][query_info['result']['checks'].length-1]['results'][0];
-            query_type[myIdExtracted] = [datasource_type,full_query,query_result];
-          } catch(e) {
-            console.error(e);
-          }
-        });*/
-      }
-      if(decodedSignature[2].length>70){
-        console.log('****** NOT VALID ');
-        var checkIfJson = proofContentAscii.indexOf("{");
-        if(checkIfJson!==-1){
-          try {
-            proofContent = JSON.parse(proofContentAscii.replace(/'/g,'"'));
-            if(proofContent.type=='hex' && typeof(proofContent.value)!='undefined'){
-              proofContent = proofContent.value;
+  try {
+    if(signature4byte=="27dc297e"){
+        // no proof
+        return false;
+    } else if(signature4byte=="38bbfa50"){
+        // proof
+        decodedSignature = ethAbi.rawDecode(["bytes32","string","bytes"], Buffer.from(inputdata, 'hex'));
+        decodedSignature[0] = Buffer.from(decodedSignature[0]).toString('hex')
+        decodedSignature[2] = decodedSignature[2]//Buffer.from(decodedSignature[2]).toString('hex')
+        var myIdExtracted = decodedSignature[0];
+        var proofContent = decodedSignature[2]
+        var proofContentAscii = web3.toAscii(proofContent.toString('hex'));
+        if(proofContentAscii=='None' || decodedSignature[2]=='0x' || proofContentAscii=='') return false;
+        console.log(myIdExtracted);
+        console.log(decodedSignature[2]);
+        if(typeof(query_type[myIdExtracted])=='undefined'){
+          query_type[myIdExtracted] = [];
+          /*get_query_info(myIdExtracted, function(result) {
+            var query_info = result;
+            try {
+              var datasource_type = query_info['result']['payload']['conditions'][0]['datasource'];
+              var full_query = query_info['result']['payload']['conditions'][0]['query'];
+              var query_result = query_info['result']['checks'][query_info['result']['checks'].length-1]['results'][0];
+              query_type[myIdExtracted] = [datasource_type,full_query,query_result];
+            } catch(e) {
+              console.error(e);
             }
-          } catch(e) {}
+          });*/
         }
-        myids[proofContent] = [];
-        myids[proofContent] = [myIdExtracted,true];
-        return proofContent;
-      } else {
-        proofID = base58.fromHex((decodedSignature[2]).replace("0x",""));
+        if(decodedSignature[2].length>70){
+          console.log('****** NOT VALID ');
+          var checkIfJson = proofContentAscii.indexOf("{");
+          if(checkIfJson!==-1){
+            try {
+              proofContent = JSON.parse(proofContentAscii.replace(/'/g,'"'));
+              if(proofContent.type=='hex' && typeof(proofContent.value)!='undefined'){
+                proofContent = proofContent.value;
+              }
+            } catch(e) {}
+          }
+          myids[proofContent] = [];
+          myids[proofContent] = [myIdExtracted,true];
+          return proofContent;
+        } else {
+          proofID = base58.fromHex(Buffer.from(decodedSignature[2]).toString('hex'))
+          if(isValidMultihash(proofID)){
+            console.log('****** VALID');
+            myids[proofID] = [];
+            myids[proofID] = [myIdExtracted,false];
+            return proofID;
+          }
+        }
+    } else if(signature4byte=="7d242ae5"){
+        // base price tx (with proof)
+        decodedSignature = ethAbi.rawDecode(["uint","bytes"],Buffer.from(inputdata, 'hex'));
+        decodedSignature[1] = Buffer.from(decodedSignature[1]).toString('hex')
+        proofID = base58.fromHex(decodedSignature[1])
         if(isValidMultihash(proofID)){
-          console.log('****** VALID');
-          myids[proofID] = [];
-          myids[proofID] = [myIdExtracted,false];
           return proofID;
         }
-      }
-  } else if(signature4byte=="7d242ae5"){
-      // base price tx (with proof)
-      decodedSignature = solidity.decodeParams(["uint","bytes"],inputdata);
-      proofID = base58.fromHex((decodedSignature[1]).replace("0x",""));
-      if(isValidMultihash(proofID)){
-        return proofID;
-      }
-  } else {
-     return false
+    } else {
+       return false
+    }
+  } catch (e) {
+    console.log("decode error", e)
+    return false
   }
 }
 
 function updateChart(type,result,datas,proofi,proof,time,w){
-  if (type === 'ledger') type = 'computation'
+  if (type === 'ledger') result.subproof = 'computation'
   console.log(result);
   if(!result.result){
     //datas.tx_count_1b = false;

@@ -224,25 +224,17 @@ try{
 }
 
 var ethnode_name_list = {
-  /*'http://eth-node-1.oraclize.it/': {
-    'desc':'Oraclize Public Node - Mainnet',
-    'alias':'mainnet'
-  },
-  'http://eth-testnet-node-1.oraclize.it/': {
-    'desc':'Oraclize Public Node - Ropsten Testnet',
-    'alias':'testnet'
-  },*/
   'https://mainnet.infura.io/YwngtTceY6FmxDsqpgLf' : {
     'desc': 'Infura - Mainnet',
     'alias':'mainnet'
   },
-  'https://eth3.augur.net': {
-    'desc':'Augur - Ropsten Testnet',
+  'https://ropsten.infura.io/': {
+    'desc':'Infura - Ropsten Testnet',
     'alias':'testnet'
   },
-  'https://test-node2929.etherscan.io/': {
-    'desc':'Etherscan - Ropsten Testnet',
-    'alias':'testnet'
+  'https://kovan.infura.io/': {
+    'desc':'Infura - Kovan Testnet',
+    'alias':'kovan'
   }
 };
 
